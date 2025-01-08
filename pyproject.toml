@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "automlst"
+dynamic = ["version"]
+dependencies = [
+    "biopython",
+    "aiohttp[speedups]",
+]
+requires-python = ">=3.11"
+description = "A tool to rapidly fetch fetch MLST profiles given sequences for various diseases."
+
+[project.scripts]
+automlst = "automlst.cli.root:cli"
+nsbdiagtk = "automlst.cli.root:cli"
+
+[tool.pyright]
+extraPaths = ["src"]
+exclude = [
+    "**/node_modules",
+    "**/__pycache__"
+]
+executionEnvironments = [
+    {root = "src"}
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests"
+]
+pythonpath = [
+    "src"
+]
+addopts = [
+    "--import-mode=importlib",
+]
+asyncio_mode = "auto"
+
+[tool.pylint.main]
+source-roots = "src"
+
+[tool.pylint.format]
+# Maximum number of characters on a single line.
+max-line-length = 88
+

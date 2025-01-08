@@ -1,0 +1,50 @@
+pipeline {
+    agent {
+        kubernetes {
+            cloud 'rsys-devel'
+            defaultContainer 'homebrew'
+            inheritFrom 'homebrew'
+        }
+    }
+    stages {
+        stage("install") {
+            steps {
+                sh 'brew install python@3.11 sphinx-doc'
+                sh 'python3.11 -m pip install -r requirements.txt'
+            }
+        }
+        stage("unit tests") {
+            steps {
+                sh returnStatus: true, script: "python3.11 -m pytest --junitxml=test_results.xml"
+                xunit checksName: '', tools: [JUnit(excludesPattern: '', pattern: 'test_results.xml', stopProcessingIfError: true)]
+            }
+        }
+        stage("build") {
+            steps {
+                sh "python3.11 -m build"
+            }
+        }
+        stage("test installation") {
+            steps {
+                sh "python3.11 -m pip install dist/*.whl --force-reinstall"
+                sh "automlst -h"
+            }
+        }
+        stage("archive") {
+            steps {
+                archiveArtifacts artifacts: 'dist/*.tar.gz, dist/*.whl', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
+            }
+        }
+        stage("publish") {
+            environment {
+                CREDS = credentials('4d6f64be-d26d-4f95-8de3-b6a9b0beb311')
+            }
+            when {
+                branch '**/main'
+            }
+            steps {
+                sh returnStatus: true, script: 'python3.11 -m twine upload --repository-url https://git.reslate.systems/api/packages/${CREDS_USR}/pypi -u ${CREDS_USR} -p ${CREDS_PSW} --non-interactive --disable-progress-bar --verbose dist/*'
+            }
+        }
+    }
+}
