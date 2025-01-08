@@ -30,15 +30,11 @@ class InstitutPasteurProfiler(MLSTProfiler):
                 alelle_id = allele["allele_id"]
                 yield Allele(allele_loci=allele_loci, allele_variant=alelle_id)
 
-    async def fetch_mlst_st(self, schema_id: int, alleles: Union[AsyncIterable[Allele], Iterable[Allele]]) -> MLSTProfile:
+    async def fetch_mlst_st(self, schema_id: int, alleles: AsyncIterable[Allele]) -> MLSTProfile:
         uri_path = f"schemes/{schema_id}/designations"
         allele_request_dict: dict[str, list[dict[str, str]]] = defaultdict(list)
-        if isinstance(alleles, AsyncIterable):
-            async for allele in alleles:
-                allele_request_dict[allele.allele_loci].append({"allele": str(allele.allele_variant)})
-        else:
-            for allele in alleles:
-                allele_request_dict[allele.allele_loci].append({"allele": str(allele.allele_variant)})
+        async for allele in alleles:
+            allele_request_dict[allele.allele_loci].append({"allele": str(allele.allele_variant)})
         response = await self._http_client.post(uri_path, json={
             "designations": allele_request_dict
         })

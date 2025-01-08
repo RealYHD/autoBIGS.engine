@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from contextlib import AbstractAsyncContextManager
-from typing import AsyncGenerator, AsyncIterable, Generator, Iterable, Mapping, Union
+from typing import Any, AsyncGenerator, AsyncIterable, Generator, Iterable, Mapping, Union
 
 from aiohttp import ClientSession
 

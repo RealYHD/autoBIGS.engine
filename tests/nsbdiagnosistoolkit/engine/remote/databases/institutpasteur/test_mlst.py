@@ -16,7 +16,8 @@ async def test_profiling_results_in_exact_matches_when_exact():
         assert len(targets_left) == 0
 
 async def test_profiling_results_in_correct_st():
-    dummy_alleles = [
+    async def dummy_allele_generator():
+        dummy_alleles = [
         Allele("adk", "1"),
         Allele("fumC", "1"),
         Allele("glyA", "1"),
@@ -24,9 +25,11 @@ async def test_profiling_results_in_correct_st():
         Allele("icd", "1"),
         Allele("pepA", "1"),
         Allele("pgm", "1"),
-    ]
+        ]
+        for dummy_allele in dummy_alleles:
+            yield dummy_allele
     async with InstitutPasteurProfiler(database_name="pubmlst_bordetella_seqdef") as dummy_profiler:
-        mlst_st_data = await dummy_profiler.fetch_mlst_st(3, dummy_alleles)
+        mlst_st_data = await dummy_profiler.fetch_mlst_st(3, dummy_allele_generator())
         assert mlst_st_data is not None
         assert isinstance(mlst_st_data, MLSTProfile)
         assert mlst_st_data.clonal_complex == "ST-2 complex"
