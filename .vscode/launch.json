@@ -6,18 +6,12 @@
     "configurations": [
         
         {
-            "name": "CLI ipdbmlst",
+            "name": "CLI blank",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/src/automlst/cli/root.py",
+            "program": "${workspaceFolder}/src/automlst/cli/program.py",
             "console": "integratedTerminal",
-            "args": [
-                "-fa",
-                "${workspaceFolder}/tests/resources/tohama_I_bpertussis.fasta",
-                "-ipdbmlst",
-                "pubmlst_bordetella_seqdef",
-                "${workspaceFolder}/output"
-            ],
+            "args": [],
             "cwd": "${workspaceFolder}/src",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/src"

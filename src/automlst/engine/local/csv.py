@@ -6,7 +6,7 @@ from typing import AsyncIterable, Iterable, Mapping, Sequence, Union
 from automlst.engine.data.mlst import Allele, MLSTProfile
 
 
-def loci_alleles_variants_from_loci(alleles_map: Mapping[str, Sequence[Allele]]):
+def dict_loci_alleles_variants_from_loci(alleles_map: Mapping[str, Sequence[Allele]]):
     result_dict: dict[str, list[str]] = {}
     for loci, alleles in alleles_map.items():
         result_dict[loci] = list()
@@ -15,17 +15,19 @@ def loci_alleles_variants_from_loci(alleles_map: Mapping[str, Sequence[Allele]])
     return result_dict
 
 
-async def write_mlst_profiles_as_csv(mlst_profiles_iterable: Iterable[MLSTProfile], handle: Union[str, bytes, PathLike[str], PathLike[bytes]]):
-    mlst_profiles = list(mlst_profiles_iterable)
-    header = ["st", "clonal-complex", *mlst_profiles[0].alleles.keys()]
+async def write_mlst_profiles_as_csv(mlst_profiles_iterable: AsyncIterable[tuple[str, MLSTProfile]], handle: Union[str, bytes, PathLike[str], PathLike[bytes]]):
     with open(handle, "w", newline='') as filehandle:
-        writer = csv.DictWriter(filehandle, fieldnames=header)
-        writer.writeheader()
-        for mlst_profile in mlst_profiles:
+        header = None
+        writer: Union[csv.DictWriter, None] = None
+        async for name, mlst_profile in mlst_profiles_iterable:
+            if writer is None:
+                header = ["st", "clonal-complex", "id", *mlst_profile.alleles.keys()]
+                writer = csv.DictWriter(filehandle, fieldnames=header)
+                writer.writeheader()
             row_dictionary = {
                 "st": mlst_profile.sequence_type,
                 "clonal-complex": mlst_profile.clonal_complex,
-                **loci_alleles_variants_from_loci(mlst_profile.alleles)
+                "id": name,
+                **dict_loci_alleles_variants_from_loci(mlst_profile.alleles)
             }
-
             writer.writerow(rowdict=row_dictionary)
