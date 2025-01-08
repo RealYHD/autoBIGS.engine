@@ -6,7 +6,7 @@ from automlst.engine.remote.databases.institutpasteur.mlst import InstitutPasteu
 async def test_profiling_results_in_exact_matches_when_exact():
     sequence = str(SeqIO.read("tests/resources/tohama_I_bpertussis.fasta", "fasta").seq)
     async with InstitutPasteurProfiler(database_name="pubmlst_bordetella_seqdef") as dummy_profiler:
-        exact_matches = dummy_profiler.fetch_mlst_allele_variants(sequence_string=sequence)
+        exact_matches = dummy_profiler.fetch_mlst_allele_variants(schema_id=3, sequence_string=sequence)
         targets_left = {"adk", "fumC", "glyA", "tyrB", "icd", "pepA", "pgm"}
         async for exact_match in exact_matches:
             assert isinstance(exact_match, Allele)
@@ -16,7 +16,6 @@ async def test_profiling_results_in_exact_matches_when_exact():
         assert len(targets_left) == 0
 
 async def test_profiling_results_in_correct_st():
-    sequence = str(SeqIO.read("tests/resources/tohama_I_bpertussis.fasta", "fasta").seq)
     dummy_alleles = [
         Allele("adk", "1"),
         Allele("fumC", "1"),
@@ -27,8 +26,7 @@ async def test_profiling_results_in_correct_st():
         Allele("pgm", "1"),
     ]
     async with InstitutPasteurProfiler(database_name="pubmlst_bordetella_seqdef") as dummy_profiler:
-        exact_matches = dummy_profiler.fetch_mlst_allele_variants(sequence_string=sequence)
-        mlst_st_data = await dummy_profiler.fetch_mlst_st(dummy_alleles)
+        mlst_st_data = await dummy_profiler.fetch_mlst_st(3, dummy_alleles)
         assert mlst_st_data is not None
         assert isinstance(mlst_st_data, MLSTProfile)
         assert mlst_st_data.clonal_complex == "ST-2 complex"
@@ -46,7 +44,7 @@ async def test_sequence_profiling_is_correct():
         Allele("pgm", "1"),
     ]
     async with InstitutPasteurProfiler(database_name="pubmlst_bordetella_seqdef") as dummy_profiler:
-        profile = await dummy_profiler.profile_string(sequence)
+        profile = await dummy_profiler.profile_string(3, sequence)
         assert profile is not None
         assert isinstance(profile, MLSTProfile)
         assert profile.clonal_complex == "ST-2 complex"

@@ -17,7 +17,7 @@ class PubMLSTProfiler(MLSTProfiler):
         self._base_url = f"https://rest.pubmlst.org/db/{database_name}/"
         self._http_client = ClientSession(self._base_url, timeout=ClientTimeout(10000))
 
-    async def fetch_mlst_allele_variants(self, schema_id: int, sequence_string: str) -> AsyncGenerator[Allele]:
+    async def fetch_mlst_allele_variants(self, schema_id: int, sequence_string: str) -> AsyncGenerator[Allele, Any]:
         uri_path = f"schemes/{schema_id}/sequence"
         response = await self._http_client.post(uri_path, json={
             "sequence": sequence_string

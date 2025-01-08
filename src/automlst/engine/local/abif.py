@@ -110,6 +110,6 @@ def _biopython_local_pairwise_alignment(reference: NamedString, query: NamedStri
     alignment_result = sorted(aligner.align(reference.sequence, query.sequence))[0] # take the best alignment
     return NamedString(alignment_result.sequences[0].id, alignment_result.sequences[0].seq), NamedString(alignment_result.sequences[1].id, alignment_result.sequences[1].seq)
 
-async def reference_consensus_assembly(reference: NamedString, sanger_traces: Collection[SangerTraceData]) -> AsyncGenerator[NamedString]:
+async def reference_consensus_assembly(reference: NamedString, sanger_traces: Collection[SangerTraceData]) -> AsyncGenerator[NamedString, Any]:
     for sanger_trace in sanger_traces:
         yield (await asyncio.to_thread(_biopython_local_pairwise_alignment, reference, sanger_trace))[1]

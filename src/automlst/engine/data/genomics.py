@@ -3,23 +3,23 @@ from numbers import Number
 from typing import Mapping, Sequence, Set, Union
 
 
-@dataclass
+@dataclass(frozen=True)
 class StringAnnotation:
     type: str
     start: int
     end: int
     feature_properties: Mapping[str, Set[str]]
 
-@dataclass
+@dataclass(frozen=True)
 class NamedString:
     name: str
     sequence: str
 
-@dataclass
+@dataclass(frozen=True)
 class AnnotatedString(NamedString):
     annotations: Sequence[StringAnnotation]
 
-@dataclass
+@dataclass(frozen=True)
 class SangerTraceData(NamedString):
     seq_param_file_name: str
     analysis_proto_settings_name: str

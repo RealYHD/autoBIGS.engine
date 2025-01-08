@@ -13,7 +13,7 @@ MLST_DATABASES = [
 
 class MLSTProfiler(AbstractAsyncContextManager):
     @abstractmethod
-    def fetch_mlst_allele_variants(self, schema_id: int, sequence_string: str) -> AsyncGenerator[Allele]:
+    def fetch_mlst_allele_variants(self, schema_id: int, sequence_string: str) -> AsyncGenerator[Allele, Any]:
         pass
     
     @abstractmethod
