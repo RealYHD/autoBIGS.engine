@@ -4,7 +4,7 @@ import datetime
 from os import path
 import os
 
-from automlst.cli import aggregator
+from automlst.cli import aggregated
 from automlst.engine.data.genomics import NamedString
 from automlst.engine.local.abif import read_abif
 from automlst.engine.local.csv import write_mlst_profiles_as_csv
@@ -40,6 +40,22 @@ parser.add_argument(
     help="The ABIF files to process. Multiple can be listed."
 )
 parser.add_argument(
+    "--ncbi-assembly-reference", "-refncbi",
+    dest="ncbi_assembly_reference",
+    required=False,
+    default=None,
+    type=str,
+    help="The NCBI GenBank accession ID for the consensus assembly. Either this argument, or the path equivalent must be given if ABIF files are used."
+)
+parser.add_argument(
+    "--assembly-reference", "-ref",
+    dest="assembly_reference",
+    required=False,
+    default=None,
+    type=str,
+    help="The path to the FASTA sequence to be used as a reference for consensus building."
+)
+parser.add_argument(
     "--institut-pasteur-mlst",
     "-ipdbmlst",
     dest="institut_pasteur_db",
@@ -51,16 +67,16 @@ parser.add_argument(
 parser.add_argument(
     "out",
     default="./.",
-    help="The output folder. Files will be named by the provided (or default) run name."
+    help="The output folder. Files will be named by the provided (or default) run name. Outputs will be automatically generated depending on which arguments are used."
 )
 
 
 def cli():
     args = parser.parse_args()
-    gen_strings = aggregator.aggregate_sequences(args.fastas, args.abifs)
+    gen_strings = aggregated.aggregate_sequences(args.fastas, args.abifs)
     os.makedirs(args.out, exist_ok=True)
     if args.institut_pasteur_db is not None:
-        mlst_profiles = aggregator.profile_all_genetic_strings(
+        mlst_profiles = aggregated.profile_all_genetic_strings(
             gen_strings, args.institut_pasteur_db)
         asyncio.run(write_mlst_profiles_as_csv(
             asyncio.run(mlst_profiles), str(path.join(args.out, "MLST_" + args.run_name + ".csv"))))

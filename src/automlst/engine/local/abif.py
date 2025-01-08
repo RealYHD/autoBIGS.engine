@@ -1,10 +1,10 @@
 import asyncio
 from numbers import Number
 from os import path
-from typing import Sequence, Union
-from automlst.engine.data.genomics import SangerTraceData
+from typing import AsyncGenerator, Collection, Sequence, Union
+from automlst.engine.data.genomics import NamedString, SangerTraceData
 from Bio.SeqRecord import SeqRecord
-from Bio import SeqIO
+from Bio import SeqIO, Align
 
 
 def _biopython_read_abif_sequence(seq_path: str) -> SeqRecord:
@@ -23,6 +23,7 @@ async def read_abif(seq_path: str) -> SangerTraceData:
     # Lot of type ignoring since Biopython did not define their typing.
     biopython_abif_raw = biopython_annotations["abif_raw"] # type: ignore
     trace_data = SangerTraceData(
+        path.basename(seq_path),
         biopython_seq.seq,
         biopython_abif_raw.get("APFN2"), # type: ignore
         biopython_abif_raw.get("APrN1"), # type: ignore
@@ -102,3 +103,13 @@ async def read_abif(seq_path: str) -> SangerTraceData:
         biopython_abif_raw.get("User") # type: ignore
     )
     return trace_data
+
+def _biopython_local_pairwise_alignment(reference: NamedString, query: NamedString) -> tuple[NamedString, NamedString]:
+    aligner = Align.PairwiseAligner(scoring="blastn")
+    aligner.mode = "local"
+    alignment_result = sorted(aligner.align(reference.sequence, query.sequence))[0] # take the best alignment
+    return NamedString(alignment_result.sequences[0].id, alignment_result.sequences[0].seq), NamedString(alignment_result.sequences[1].id, alignment_result.sequences[1].seq)
+
+async def reference_consensus_assembly(reference: NamedString, sanger_traces: Collection[SangerTraceData]) -> AsyncGenerator[NamedString]:
+    for sanger_trace in sanger_traces:
+        yield (await asyncio.to_thread(_biopython_local_pairwise_alignment, reference, sanger_trace))[1]

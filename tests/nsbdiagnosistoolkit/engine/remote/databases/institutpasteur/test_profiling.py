@@ -1,6 +1,6 @@
 from Bio import SeqIO
 from automlst.engine.data.MLST import Allele, MLSTProfile
-from automlst.engine.remote.databases.institutpasteur.profiling import InstitutPasteurProfiler
+from automlst.engine.remote.databases.institutpasteur.mlst import InstitutPasteurProfiler
 
 
 async def test_profiling_results_in_exact_matches_when_exact():

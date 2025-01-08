@@ -20,8 +20,7 @@ class AnnotatedString(NamedString):
     annotations: Sequence[StringAnnotation]
 
 @dataclass
-class SangerTraceData:
-    sequence: Sequence[str]
+class SangerTraceData(NamedString):
     seq_param_file_name: str
     analysis_proto_settings_name: str
     analysis_rpto_settings_ver: str

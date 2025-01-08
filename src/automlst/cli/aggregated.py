@@ -4,7 +4,7 @@ from automlst.engine.data.MLST import MLSTProfile
 from automlst.engine.data.genomics import NamedString
 from automlst.engine.local.abif import read_abif
 from automlst.engine.local.fasta import read_fasta
-from automlst.engine.remote.databases.institutpasteur.profiling import InstitutPasteurProfiler
+from automlst.engine.remote.databases.institutpasteur.mlst import InstitutPasteurProfiler
 
 
 async def aggregate_sequences(fastas: Iterable[str], abifs: Iterable[str]) -> AsyncGenerator[str, Any]:
