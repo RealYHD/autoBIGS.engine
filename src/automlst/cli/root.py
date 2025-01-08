@@ -71,7 +71,7 @@ parser.add_argument(
 )
 
 
-def cli():
+def run():
     args = parser.parse_args()
     gen_strings = aggregated.aggregate_sequences(args.fastas, args.abifs)
     os.makedirs(args.out, exist_ok=True)
@@ -83,4 +83,4 @@ def cli():
 
 
 if __name__ == "__main__":
-    cli()
+    run()
