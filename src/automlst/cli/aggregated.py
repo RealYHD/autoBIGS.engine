@@ -1,6 +1,6 @@
 from os import path
 from typing import Any, AsyncGenerator, AsyncIterable, Iterable, Sequence
-from automlst.engine.data.MLST import MLSTProfile
+from automlst.engine.data.mlst import MLSTProfile
 from automlst.engine.data.genomics import NamedString
 from automlst.engine.local.abif import read_abif
 from automlst.engine.local.fasta import read_fasta

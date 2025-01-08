@@ -1,5 +1,5 @@
 from Bio import SeqIO
-from automlst.engine.data.MLST import Allele, MLSTProfile
+from automlst.engine.data.mlst import Allele, MLSTProfile
 from automlst.engine.remote.databases.institutpasteur.mlst import InstitutPasteurProfiler
 
 
@@ -33,3 +33,21 @@ async def test_profiling_results_in_correct_st():
         assert isinstance(mlst_st_data, MLSTProfile)
         assert mlst_st_data.clonal_complex == "ST-2 complex"
         assert mlst_st_data.sequence_type == "1"
+
+async def test_sequence_profiling_is_correct():
+    sequence = str(SeqIO.read("tests/resources/tohama_I_bpertussis.fasta", "fasta").seq)
+    dummy_alleles = [
+        Allele("adk", "1"),
+        Allele("fumC", "1"),
+        Allele("glyA", "1"),
+        Allele("tyrB", "1"),
+        Allele("icd", "1"),
+        Allele("pepA", "1"),
+        Allele("pgm", "1"),
+    ]
+    async with InstitutPasteurProfiler(database_name="pubmlst_bordetella_seqdef") as dummy_profiler:
+        profile = await dummy_profiler.profile_string(sequence)
+        assert profile is not None
+        assert isinstance(profile, MLSTProfile)
+        assert profile.clonal_complex == "ST-2 complex"
+        assert profile.sequence_type == "1"

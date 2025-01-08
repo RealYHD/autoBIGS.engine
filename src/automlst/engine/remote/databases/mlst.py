@@ -4,7 +4,7 @@ from typing import AsyncGenerator, AsyncIterable, Generator, Iterable, Mapping, 
 
 from aiohttp import ClientSession
 
-from automlst.engine.data.MLST import Allele, MLSTProfile
+from automlst.engine.data.mlst import Allele, MLSTProfile
 
 MLST_DATABASES = [
     "https://bigsdb.pasteur.fr/api/db",
