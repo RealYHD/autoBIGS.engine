@@ -1,6 +1,8 @@
 from Bio import SeqIO
+import pytest
 from automlst.engine.data.genomics import NamedString
 from automlst.engine.data.mlst import Allele, MLSTProfile
+from automlst.engine.exceptions.database import NoBIGSdbExactMatchesException
 from automlst.engine.remote.databases.bigsdb import BIGSdbIndex, BIGSdbMLSTProfiler
 
 
@@ -127,6 +129,41 @@ async def test_bigsdb_profile_multiple_strings_same_string_twice():
             assert isinstance(profile, MLSTProfile)
             assert profile.clonal_complex == "ST-2 complex"
             assert profile.sequence_type == "1"
+
+async def test_bigsdb_profile_multiple_strings_fail_second_no_stop():
+    valid_seq = str(SeqIO.read("tests/resources/tohama_I_bpertussis.fasta", "fasta").seq)
+    invalid_seq = str(SeqIO.read("tests/resources/FDAARGOS_1560.fasta", "fasta").seq)
+    dummy_sequences = [NamedString("seq1", valid_seq), NamedString("should_fail", invalid_seq), NamedString("seq3", valid_seq)]
+    async def generate_async_iterable_sequences():
+        for dummy_sequence in dummy_sequences:
+            yield dummy_sequence
+    async with BIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
+        async for name, profile in dummy_profiler.profile_multiple_strings(generate_async_iterable_sequences()):
+            if name == "should_fail":
+                assert profile is None
+            else:
+                assert profile is not None
+                assert isinstance(profile, MLSTProfile)
+                assert profile.clonal_complex == "ST-2 complex"
+                assert profile.sequence_type == "1"
+
+async def test_bigsdb_profile_multiple_strings_fail_second_stop():
+    valid_seq = str(SeqIO.read("tests/resources/tohama_I_bpertussis.fasta", "fasta").seq)
+    invalid_seq = str(SeqIO.read("tests/resources/FDAARGOS_1560.fasta", "fasta").seq)
+    dummy_sequences = [NamedString("seq1", valid_seq), NamedString("should_fail", invalid_seq), NamedString("seq3", valid_seq)]
+    async def generate_async_iterable_sequences():
+        for dummy_sequence in dummy_sequences:
+            yield dummy_sequence
+    async with BIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
+        with pytest.raises(NoBIGSdbExactMatchesException):
+            async for name, profile in dummy_profiler.profile_multiple_strings(generate_async_iterable_sequences(), stop_on_fail=True):
+                if name == "should_fail":
+                    pytest.fail("Exception should have been thrown, no exception was thrown.")
+                else:
+                    assert profile is not None
+                    assert isinstance(profile, MLSTProfile)
+                    assert profile.clonal_complex == "ST-2 complex"
+                    assert profile.sequence_type == "1"
 
 async def test_bigsdb_index_get_schemas_for_bordetella():
     async with BIGSdbIndex() as index:

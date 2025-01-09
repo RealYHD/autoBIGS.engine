@@ -5,7 +5,6 @@ from automlst.engine.remote.databases.bigsdb import BIGSdbIndex
 
 def setup_parser(parser: ArgumentParser):
     parser.description = "Fetches the latest BIGSdb MLST database definitions."
-    parser.usage = "test"
     parser.add_argument(
         "--retrieve-bigsdbs", "-l",
         action="store_true",
