@@ -1,11 +1,12 @@
 from Bio import SeqIO
+from automlst.engine.data.genomics import NamedString
 from automlst.engine.data.mlst import Allele, MLSTProfile
-from automlst.engine.remote.databases.bigsdb import BIGSdbIndex, BigSDBMLSTProfiler
+from automlst.engine.remote.databases.bigsdb import BIGSdbIndex, BIGSdbMLSTProfiler
 
 
 async def test_institutpasteur_profiling_results_in_exact_matches_when_exact():
     sequence = str(SeqIO.read("tests/resources/tohama_I_bpertussis.fasta", "fasta").seq)
-    async with BigSDBMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
+    async with BIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
         exact_matches = dummy_profiler.fetch_mlst_allele_variants(sequence_string=sequence)
         targets_left = {"adk", "fumC", "glyA", "tyrB", "icd", "pepA", "pgm"}
         async for exact_match in exact_matches:
@@ -28,7 +29,7 @@ async def test_institutpasteur_profiling_results_in_correct_mlst_st():
         ]
         for dummy_allele in dummy_alleles:
             yield dummy_allele
-    async with BigSDBMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
+    async with BIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
         mlst_st_data = await dummy_profiler.fetch_mlst_st(dummy_allele_generator())
         assert mlst_st_data is not None
         assert isinstance(mlst_st_data, MLSTProfile)
@@ -37,7 +38,7 @@ async def test_institutpasteur_profiling_results_in_correct_mlst_st():
 
 async def test_institutpasteur_sequence_profiling_is_correct():
     sequence = str(SeqIO.read("tests/resources/tohama_I_bpertussis.fasta", "fasta").seq)
-    async with BigSDBMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
+    async with BIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
         profile = await dummy_profiler.profile_string(sequence)
         assert profile is not None
         assert isinstance(profile, MLSTProfile)
@@ -56,7 +57,7 @@ async def test_pubmlst_profiling_results_in_exact_matches_when_exact():
         Allele("recA", "5"),
     }
     sequence = str(SeqIO.read("tests/resources/FDAARGOS_1560.fasta", "fasta").seq)
-    async with BigSDBMLSTProfiler(database_api="https://rest.pubmlst.org/", database_name="pubmlst_hinfluenzae_seqdef", schema_id=1) as dummy_profiler:
+    async with BIGSdbMLSTProfiler(database_api="https://rest.pubmlst.org/", database_name="pubmlst_hinfluenzae_seqdef", schema_id=1) as dummy_profiler:
         exact_matches = dummy_profiler.fetch_mlst_allele_variants(sequence_string=sequence)
         async for exact_match in exact_matches:
             assert isinstance(exact_match, Allele)
@@ -77,7 +78,7 @@ async def test_pubmlst_profiling_results_in_correct_st():
             ]
         for dummy_allele in dummy_alleles:
             yield dummy_allele
-    async with BigSDBMLSTProfiler(database_api="https://rest.pubmlst.org/", database_name="pubmlst_hinfluenzae_seqdef", schema_id=1) as dummy_profiler:
+    async with BIGSdbMLSTProfiler(database_api="https://rest.pubmlst.org/", database_name="pubmlst_hinfluenzae_seqdef", schema_id=1) as dummy_profiler:
         mlst_st_data = await dummy_profiler.fetch_mlst_st(generate_dummy_targets())
         assert mlst_st_data is not None
         assert isinstance(mlst_st_data, MLSTProfile)
@@ -86,7 +87,7 @@ async def test_pubmlst_profiling_results_in_correct_st():
 
 async def test_pubmlst_sequence_profiling_is_correct():
     sequence = str(SeqIO.read("tests/resources/FDAARGOS_1560.fasta", "fasta").seq)
-    async with BigSDBMLSTProfiler(database_api="https://rest.pubmlst.org/", database_name="pubmlst_hinfluenzae_seqdef", schema_id=1) as dummy_profiler:
+    async with BIGSdbMLSTProfiler(database_api="https://rest.pubmlst.org/", database_name="pubmlst_hinfluenzae_seqdef", schema_id=1) as dummy_profiler:
         profile = await dummy_profiler.profile_string(sequence)
         assert profile is not None
         assert isinstance(profile, MLSTProfile)
@@ -113,3 +114,31 @@ async def test_bigsdb_index_instantiates_correct_profiler():
             profile = await profiler.profile_string(sequence)
             assert profile.clonal_complex == "ST-2 complex"
             assert profile.sequence_type == "1"
+
+async def test_bigsdb_profile_multiple_strings_same_string_twice():
+    sequence = str(SeqIO.read("tests/resources/tohama_I_bpertussis.fasta", "fasta").seq)
+    dummy_sequences = [NamedString("seq1", sequence), NamedString("seq2", sequence)]
+    async def generate_async_iterable_sequences():
+        for dummy_sequence in dummy_sequences:
+            yield dummy_sequence
+    async with BIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
+        async for name, profile in dummy_profiler.profile_multiple_strings(generate_async_iterable_sequences()):
+            assert profile is not None
+            assert isinstance(profile, MLSTProfile)
+            assert profile.clonal_complex == "ST-2 complex"
+            assert profile.sequence_type == "1"
+
+async def test_bigsdb_index_get_schemas_for_bordetella():
+    async with BIGSdbIndex() as index:
+        schemas = await index.get_schemas_for_seqdefdb(seqdef_db_name="pubmlst_bordetella_seqdef")
+        assert len(schemas.keys()) > 0
+        assert "MLST" in schemas
+        assert isinstance(schemas["MLST"], int)
+
+async def test_bigsdb_index_get_databases_has_only_seqdef():
+    async with BIGSdbIndex() as index:
+        databases = await index.get_known_seqdef_dbs()
+        assert len(databases.keys()) > 0
+        for database_name in databases.keys():
+            assert database_name.endswith("seqdef")
+        assert databases["pubmlst_bordetella_seqdef"] == "https://bigsdb.pasteur.fr/api"
