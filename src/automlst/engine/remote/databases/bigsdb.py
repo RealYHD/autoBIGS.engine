@@ -7,7 +7,7 @@ from aiohttp import ClientSession, ClientTimeout
 from automlst.engine.data.genomics import NamedString
 from automlst.engine.data.mlst import Allele, MLSTProfile
 
-class BigSDBMLSTProfiler(AbstractAsyncContextManager):
+class BIGSdbMLSTProfiler(AbstractAsyncContextManager):
 
     def __init__(self, database_api: str, database_name: str, schema_id: int):
         self._database_name = database_name
@@ -124,8 +124,8 @@ class BIGSdbIndex(AbstractAsyncContextManager):
             self._seqdefdb_schemas[seqdef_db_name] = schema_descriptions
             return self._seqdefdb_schemas[seqdef_db_name] # type: ignore
 
-    async def build_profiler_from_seqdefdb(self, dbseqdef_name: str, schema_id: int) -> BigSDBMLSTProfiler:
-        return BigSDBMLSTProfiler(await self.get_bigsdb_api_from_seqdefdb(dbseqdef_name), dbseqdef_name, schema_id)
+    async def build_profiler_from_seqdefdb(self, dbseqdef_name: str, schema_id: int) -> BIGSdbMLSTProfiler:
+        return BIGSdbMLSTProfiler(await self.get_bigsdb_api_from_seqdefdb(dbseqdef_name), dbseqdef_name, schema_id)
 
     async def close(self):
         await self._http_client.close()
