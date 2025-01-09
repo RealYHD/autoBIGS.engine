@@ -1,3 +1,6 @@
+import random
+import re
+from typing import Collection, Sequence, Union
 from Bio import SeqIO
 import pytest
 from automlst.engine.data.genomics import NamedString
@@ -5,29 +8,56 @@ from automlst.engine.data.mlst import Allele, MLSTProfile
 from automlst.engine.exceptions.database import NoBIGSdbExactMatchesException
 from automlst.engine.remote.databases.bigsdb import BIGSdbIndex, BIGSdbMLSTProfiler
 
+def gene_scrambler(gene: str, mutation_site_count: Union[int, float], alphabet: Sequence[str] = ["A", "T", "C", "G"]):
+    rand = random.Random(gene)
+    if isinstance(mutation_site_count, float):
+        mutation_site_count = int(mutation_site_count * len(gene))
+    random_locations = rand.choices(range(len(gene)), k=mutation_site_count)
+    scrambled = list(gene)
+    for random_location in random_locations:
+        scrambled[random_location] = rand.choice(alphabet)
+    return "".join(scrambled)
 
 async def test_institutpasteur_profiling_results_in_exact_matches_when_exact():
     sequence = str(SeqIO.read("tests/resources/tohama_I_bpertussis.fasta", "fasta").seq)
     async with BIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
-        exact_matches = dummy_profiler.fetch_mlst_allele_variants(sequence_string=sequence)
         targets_left = {"adk", "fumC", "glyA", "tyrB", "icd", "pepA", "pgm"}
-        async for exact_match in exact_matches:
+        async for exact_match in dummy_profiler.fetch_mlst_allele_variants(sequence_string=sequence, exact=True):
             assert isinstance(exact_match, Allele)
             assert exact_match.allele_variant == '1' # All of Tohama I has allele id I
             targets_left.remove(exact_match.allele_loci)
 
         assert len(targets_left) == 0
 
+async def test_institutpasteur_sequence_profiling_non_exact_returns_non_exact():
+    sequences = SeqIO.parse("tests/resources/tohama_I_bpertussis_coding.fasta", "fasta")
+    mlst_targets = {"adk", "fumc", "glya", "tyrb", "icd", "pepa", "pgm"}
+    async with BIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as profiler:
+        for sequence in sequences:
+            match = re.fullmatch(r".*\[gene=([\w\d]+)\].*", sequence.description)
+            if match is None:
+                continue
+            gene = match.group(1)
+            if gene.lower() not in mlst_targets:
+                continue
+            scrambled = gene_scrambler(str(sequence.seq), 0.2)
+            async for partial_match in profiler.fetch_mlst_allele_variants(scrambled, False):
+                assert partial_match.partial_match_profile is not None
+                assert partial_match.allele_variant == '1'
+                mlst_targets.remove(gene.lower())
+
+            assert len(mlst_targets) == 0
+
 async def test_institutpasteur_profiling_results_in_correct_mlst_st():
     async def dummy_allele_generator():
         dummy_alleles = [
-        Allele("adk", "1"),
-        Allele("fumC", "1"),
-        Allele("glyA", "1"),
-        Allele("tyrB", "1"),
-        Allele("icd", "1"),
-        Allele("pepA", "1"),
-        Allele("pgm", "1"),
+        Allele("adk", "1", None),
+        Allele("fumC", "1", None),
+        Allele("glyA", "1", None),
+        Allele("tyrB", "1", None),
+        Allele("icd", "1", None),
+        Allele("pepA", "1", None),
+        Allele("pgm", "1", None),
         ]
         for dummy_allele in dummy_alleles:
             yield dummy_allele
@@ -46,21 +76,21 @@ async def test_institutpasteur_sequence_profiling_is_correct():
         assert isinstance(profile, MLSTProfile)
         assert profile.clonal_complex == "ST-2 complex"
         assert profile.sequence_type == "1"
-
+    
 
 async def test_pubmlst_profiling_results_in_exact_matches_when_exact():
     dummy_alleles = {
-        Allele("adk", "1"),
-        Allele("atpG", "1"),
-        Allele("frdB", "1"),
-        Allele("fucK", "1"),
-        Allele("mdh", "1"),
-        Allele("pgi", "1"),
-        Allele("recA", "5"),
+        Allele("adk", "1", None),
+        Allele("atpG", "1", None),
+        Allele("frdB", "1", None),
+        Allele("fucK", "1", None),
+        Allele("mdh", "1", None),
+        Allele("pgi", "1", None),
+        Allele("recA", "5", None),
     }
     sequence = str(SeqIO.read("tests/resources/FDAARGOS_1560.fasta", "fasta").seq)
     async with BIGSdbMLSTProfiler(database_api="https://rest.pubmlst.org/", database_name="pubmlst_hinfluenzae_seqdef", schema_id=1) as dummy_profiler:
-        exact_matches = dummy_profiler.fetch_mlst_allele_variants(sequence_string=sequence)
+        exact_matches = dummy_profiler.fetch_mlst_allele_variants(sequence_string=sequence, exact=True)
         async for exact_match in exact_matches:
             assert isinstance(exact_match, Allele)
             dummy_alleles.remove(exact_match)
@@ -70,13 +100,13 @@ async def test_pubmlst_profiling_results_in_exact_matches_when_exact():
 async def test_pubmlst_profiling_results_in_correct_st():
     async def generate_dummy_targets():
         dummy_alleles = [
-                Allele("adk", "1"),
-                Allele("atpG", "1"),
-                Allele("frdB", "1"),
-                Allele("fucK", "1"),
-                Allele("mdh", "1"),
-                Allele("pgi", "1"),
-                Allele("recA", "5"),
+                Allele("adk", "1", None),
+                Allele("atpG", "1", None),
+                Allele("frdB", "1", None),
+                Allele("fucK", "1", None),
+                Allele("mdh", "1", None),
+                Allele("pgi", "1", None),
+                Allele("recA", "5", None),
             ]
         for dummy_allele in dummy_alleles:
             yield dummy_allele

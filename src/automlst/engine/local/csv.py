@@ -7,11 +7,14 @@ from automlst.engine.data.mlst import Allele, MLSTProfile
 
 
 def dict_loci_alleles_variants_from_loci(alleles_map: Mapping[str, Sequence[Allele]]):
-    result_dict: dict[str, list[str]] = {}
+    result_dict: dict[str, Union[list[str], str]] = {}
     for loci, alleles in alleles_map.items():
-        result_dict[loci] = list()
+        if len(alleles) == 1:
+            result_dict[loci] = alleles[0].allele_variant
         for allele in alleles:
-            result_dict[loci].append(allele.allele_variant)
+            result_locis = list()
+            result_locis.append(allele.allele_variant)
+            result_dict[loci] = result_locis
     return result_dict
 
 

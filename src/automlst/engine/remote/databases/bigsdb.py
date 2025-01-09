@@ -1,12 +1,13 @@
 from collections import defaultdict
 from contextlib import AbstractAsyncContextManager
+from numbers import Number
 from typing import Any, AsyncGenerator, AsyncIterable, Collection, Generator, Iterable, Mapping, Sequence, Union
 
 from aiohttp import ClientSession, ClientTimeout
 
 from automlst.engine.data.genomics import NamedString
-from automlst.engine.data.mlst import Allele, MLSTProfile
-from automlst.engine.exceptions.database import NoBIGSdbExactMatchesException, NoSuchBIGSdbDatabaseException
+from automlst.engine.data.mlst import Allele, PartialAllelicMatchProfile, MLSTProfile
+from automlst.engine.exceptions.database import NoBIGSdbExactMatchesException, NoBIGSdbMatchesException, NoSuchBIGSdbDatabaseException
 
 class BIGSdbMLSTProfiler(AbstractAsyncContextManager):
 
@@ -19,22 +20,44 @@ class BIGSdbMLSTProfiler(AbstractAsyncContextManager):
     async def __aenter__(self):
         return self
 
-    async def fetch_mlst_allele_variants(self, sequence_string: str) -> AsyncGenerator[Allele, Any]:
+    async def fetch_mlst_allele_variants(self, sequence_string: str, exact: bool) -> AsyncGenerator[Allele, Any]:
         # See https://bigsdb.pasteur.fr/api/db/pubmlst_bordetella_seqdef/schemes
         uri_path = "sequence"
         response = await self._http_client.post(uri_path, json={
-            "sequence": sequence_string
+            "sequence": sequence_string,
+            "partial_matches": not exact
         })
         sequence_response: dict = await response.json()
 
-        if "exact_matches" not in sequence_response:
-            raise NoBIGSdbExactMatchesException(self._database_name, self._schema_id)
-        
-        exact_matches: dict[str, Sequence[dict[str, str]]] = sequence_response["exact_matches"]  
-        for allele_loci, alleles in exact_matches.items():
-            for allele in alleles:
-                alelle_id = allele["allele_id"]
-                yield Allele(allele_loci=allele_loci, allele_variant=alelle_id)
+        if "exact_matches" in sequence_response:
+            # loci -> list of alleles with id and loci
+            exact_matches: dict[str, Sequence[dict[str, str]]] = sequence_response["exact_matches"]  
+            for allele_loci, alleles in exact_matches.items():
+                for allele in alleles:
+                    alelle_id = allele["allele_id"]
+                    yield Allele(allele_loci=allele_loci, allele_variant=alelle_id, partial_match_profile=None)
+        elif "partial_matches" in sequence_response:
+            if exact:
+                raise NoBIGSdbExactMatchesException(self._database_name, self._schema_id)
+            partial_matches: dict[str, dict[str, Union[str, float, int]]] = sequence_response["partial_matches"] 
+            for allele_loci, partial_match in partial_matches.items():
+                if len(partial_match) <= 0:
+                    continue
+                partial_match_profile = PartialAllelicMatchProfile(
+                    percent_identity=float(partial_match["identity"]),
+                    mismatches=int(partial_match["mismatches"]),
+                    bitscore=float(partial_match["bitscore"]),
+                    gaps=int(partial_match["gaps"])
+                )
+                yield Allele(
+                    allele_loci=allele_loci,
+                    allele_variant=str(partial_match["allele"]),
+                    partial_match_profile=partial_match_profile
+                )
+        else:
+            raise NoBIGSdbMatchesException(self._database_name, self._schema_id)
+
+
 
     async def fetch_mlst_st(self, alleles: AsyncIterable[Allele]) -> MLSTProfile:
         uri_path = "designations"
@@ -60,15 +83,15 @@ class BIGSdbMLSTProfiler(AbstractAsyncContextManager):
                     allele_map[exact_match_loci].append(Allele(exact_match_loci, exact_match_allele["allele_id"]))
             return MLSTProfile(allele_map, schema_fields_returned["ST"], schema_fields_returned["clonal_complex"])
 
-    async def profile_string(self, string: str) -> MLSTProfile:
-        alleles = self.fetch_mlst_allele_variants(string)
+    async def profile_string(self, string: str, exact: bool = False) -> MLSTProfile:
+        alleles = self.fetch_mlst_allele_variants(string, exact)
         return await self.fetch_mlst_st(alleles)
 
 
-    async def profile_multiple_strings(self, namedStrings: AsyncIterable[NamedString], stop_on_fail: bool = False) -> AsyncGenerator[tuple[str, Union[MLSTProfile, None]], Any]:
+    async def profile_multiple_strings(self, namedStrings: AsyncIterable[NamedString], exact: bool = False, stop_on_fail: bool = False) -> AsyncGenerator[tuple[str, Union[MLSTProfile, None]], Any]:
         async for named_string in namedStrings:
             try:
-                yield (named_string.name, await self.profile_string(named_string.sequence))
+                yield (named_string.name, await self.profile_string(named_string.sequence, exact))
             except NoBIGSdbExactMatchesException as e:
                 if stop_on_fail:
                     raise e

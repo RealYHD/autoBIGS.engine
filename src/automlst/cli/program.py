@@ -4,7 +4,7 @@ import datetime
 from os import path
 import os
 
-from automlst.cli import exactmatch, info
+from automlst.cli import info, type
 from automlst.cli.meta import get_module_base_name
 from automlst.engine.data.genomics import NamedString
 from automlst.engine.local.abif import read_abif
@@ -16,7 +16,7 @@ root_parser = argparse.ArgumentParser()
 subparsers = root_parser.add_subparsers(required=True)
 
 info.setup_parser(subparsers.add_parser(get_module_base_name(info.__name__)))
-exactmatch.setup_parser(subparsers.add_parser(get_module_base_name(exactmatch.__name__)))
+type.setup_parser(subparsers.add_parser(get_module_base_name(type.__name__)))
 
 
 def run():
