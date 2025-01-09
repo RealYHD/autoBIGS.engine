@@ -16,7 +16,7 @@ pipeline {
             steps {
                 sh returnStatus: true, script: "python -m pytest --junitxml=test_results.xml --cov=. --cov-report xml:coverage.xml"
                 xunit checksName: '', tools: [JUnit(excludesPattern: '', pattern: 'test_results.xml', stopProcessingIfError: true)]
-                recordCoverage(tools: [[parser: 'COBERTURA', pattern: './coverage.xml']])
+                recordCoverage(tools: [[parser: 'COBERTURA', pattern: 'coverage.xml']])
             }
         }
         stage("build") {
