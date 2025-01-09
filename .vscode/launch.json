@@ -6,12 +6,16 @@
     "configurations": [
         
         {
-            "name": "CLI blank",
+            "name": "automlst info -lschema pubmlst_bordetella_seqdef",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/src/automlst/cli/program.py",
             "console": "integratedTerminal",
-            "args": [],
+            "args": [
+                "info",
+                "-lschemas",
+                "pubmlst_bordetella_seqdef"
+            ],
             "cwd": "${workspaceFolder}/src",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/src"

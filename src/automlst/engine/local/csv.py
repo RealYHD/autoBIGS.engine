@@ -21,7 +21,7 @@ async def write_mlst_profiles_as_csv(mlst_profiles_iterable: AsyncIterable[tuple
         writer: Union[csv.DictWriter, None] = None
         async for name, mlst_profile in mlst_profiles_iterable:
             if writer is None:
-                header = ["st", "clonal-complex", "id", *mlst_profile.alleles.keys()]
+                header = ["id", "st", "clonal-complex", *mlst_profile.alleles.keys()]
                 writer = csv.DictWriter(filehandle, fieldnames=header)
                 writer.writeheader()
             row_dictionary = {
