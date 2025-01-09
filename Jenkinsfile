@@ -20,12 +20,12 @@ pipeline {
         }
         stage("build") {
             steps {
-                sh "python3.11 -m build"
+                sh "python -m build"
             }
         }
         stage("test installation") {
             steps {
-                sh "python3.11 -m pip install dist/*.whl --force-reinstall"
+                sh "python -m pip install dist/*.whl --force-reinstall"
                 sh "automlst -h"
             }
         }
@@ -42,7 +42,7 @@ pipeline {
                 branch '**/main'
             }
             steps {
-                sh returnStatus: true, script: 'python3.11 -m twine upload --repository-url https://git.reslate.systems/api/packages/${CREDS_USR}/pypi -u ${CREDS_USR} -p ${CREDS_PSW} --non-interactive --disable-progress-bar --verbose dist/*'
+                sh returnStatus: true, script: 'python -m twine upload --repository-url https://git.reslate.systems/api/packages/${CREDS_USR}/pypi -u ${CREDS_USR} -p ${CREDS_PSW} --non-interactive --disable-progress-bar --verbose dist/*'
             }
         }
     }
