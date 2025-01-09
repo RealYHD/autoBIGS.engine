@@ -2,15 +2,14 @@ pipeline {
     agent {
         kubernetes {
             cloud 'rsys-devel'
-            defaultContainer 'homebrew'
-            inheritFrom 'homebrew'
+            defaultContainer 'pip'
+            inheritFrom 'pip'
         }
     }
     stages {
         stage("install") {
             steps {
-                sh 'brew install python@3.11 sphinx-doc'
-                sh 'python3.11 -m pip install -r requirements.txt'
+                sh 'python -m pip install -r requirements.txt'
             }
         }
         stage("unit tests") {
