@@ -9,5 +9,5 @@ class Allele:
 @dataclass(frozen=True)
 class MLSTProfile:
     alleles: Mapping[str, Sequence[Allele]]
-    sequence_type: int
+    sequence_type: str
     clonal_complex: str
