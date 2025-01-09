@@ -15,6 +15,8 @@ description = "A tool to rapidly fetch fetch MLST profiles given sequences for v
 [project.scripts]
 automlst = "automlst.cli.program:run"
 
+[tool.setuptools_scm]
+
 [tool.pyright]
 extraPaths = ["src"]
 exclude = [
