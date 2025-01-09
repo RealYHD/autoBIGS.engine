@@ -14,7 +14,7 @@ pipeline {
         }
         stage("unit tests") {
             steps {
-                sh returnStatus: true, script: "python3.11 -m pytest --junitxml=test_results.xml"
+                sh returnStatus: true, script: "python -m pytest --junitxml=test_results.xml"
                 xunit checksName: '', tools: [JUnit(excludesPattern: '', pattern: 'test_results.xml', stopProcessingIfError: true)]
             }
         }
