@@ -15,11 +15,15 @@ def dict_loci_alleles_variants_from_loci(alleles_map: Mapping[str, Sequence[Alle
     return result_dict
 
 
-async def write_mlst_profiles_as_csv(mlst_profiles_iterable: AsyncIterable[tuple[str, MLSTProfile]], handle: Union[str, bytes, PathLike[str], PathLike[bytes]]):
+async def write_mlst_profiles_as_csv(mlst_profiles_iterable: AsyncIterable[tuple[str, Union[MLSTProfile, None]]], handle: Union[str, bytes, PathLike[str], PathLike[bytes]]) -> Sequence[str]:
+    failed = list()
     with open(handle, "w", newline='') as filehandle:
         header = None
         writer: Union[csv.DictWriter, None] = None
         async for name, mlst_profile in mlst_profiles_iterable:
+            if mlst_profile is None:
+                failed.append(name)
+                continue
             if writer is None:
                 header = ["id", "st", "clonal-complex", *mlst_profile.alleles.keys()]
                 writer = csv.DictWriter(filehandle, fieldnames=header)
@@ -31,3 +35,4 @@ async def write_mlst_profiles_as_csv(mlst_profiles_iterable: AsyncIterable[tuple
                 **dict_loci_alleles_variants_from_loci(mlst_profile.alleles)
             }
             writer.writerow(rowdict=row_dictionary)
+    return failed

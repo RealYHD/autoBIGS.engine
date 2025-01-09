@@ -41,7 +41,10 @@ async def run(args):
         gen_strings = read_multiple_fastas(args.fastas)
         async with await bigsdb_index.build_profiler_from_seqdefdb(args.seqdefdb, args.schema) as mlst_profiler:
             mlst_profiles = mlst_profiler.profile_multiple_strings(gen_strings)
-            await write_mlst_profiles_as_csv(mlst_profiles, args.out)
+            failed = await write_mlst_profiles_as_csv(mlst_profiles, args.out)
+            if len(failed) > 0:
+                print(f"A total of {len(failed)} IDs failed:\n{"\n".join(failed)}")
+            print(f"Completed fetching MLSTs for {len(args.fastas)} sequences.")
 
 def run_asynchronously(args):
     asyncio.run(run(args))

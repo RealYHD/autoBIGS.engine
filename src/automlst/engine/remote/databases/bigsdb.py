@@ -46,17 +46,14 @@ class BIGSdbMLSTProfiler(AbstractAsyncContextManager):
             "designations": allele_request_dict
         }
         async with self._http_client.post(uri_path, json=request_json) as response:
-            response_json = await response.json()
+            response_json: dict = await response.json()
             if "exact_matches" not in response_json:
                 raise NoBIGSdbExactMatchesException(self._database_name, self._schema_id)
             schema_exact_matches: dict = response_json["exact_matches"]
-            if "fields" not in response_json:
-                schema_fields_returned = {
-                    "ST": "Unknown",
-                    "Clonal Complex": "Unknown"
-                }
-            else:
-                schema_fields_returned: Mapping[str, str] = response_json["fields"]
+            response_json.setdefault("fields", dict)
+            schema_fields_returned: dict[str, str] = response_json["fields"]
+            schema_fields_returned.setdefault("ST", "unknown")
+            schema_fields_returned.setdefault("clonal_complex", "unknown")
             allele_map: dict[str, list[Allele]] = defaultdict(list)
             for exact_match_loci, exact_match_alleles in schema_exact_matches.items():
                 for exact_match_allele in exact_match_alleles:
@@ -68,7 +65,7 @@ class BIGSdbMLSTProfiler(AbstractAsyncContextManager):
         return await self.fetch_mlst_st(alleles)
 
 
-    async def profile_multiple_strings(self, namedStrings: AsyncIterable[NamedString], stop_on_fail: bool = False) -> AsyncGenerator[Union[tuple[str, MLSTProfile], tuple[str, None]], Any]:
+    async def profile_multiple_strings(self, namedStrings: AsyncIterable[NamedString], stop_on_fail: bool = False) -> AsyncGenerator[tuple[str, Union[MLSTProfile, None]], Any]:
         async for named_string in namedStrings:
             try:
                 yield (named_string.name, await self.profile_string(named_string.sequence))
