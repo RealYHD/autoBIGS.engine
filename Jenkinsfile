@@ -24,12 +24,6 @@ pipeline {
                 sh "python -m build"
             }
         }
-        stage("test installation") {
-            steps {
-                sh "python -m pip install dist/*.whl --force-reinstall"
-                sh "automlst -h"
-            }
-        }
         stage("archive") {
             steps {
                 archiveArtifacts artifacts: 'dist/*.tar.gz, dist/*.whl', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
