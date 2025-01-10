@@ -33,6 +33,12 @@ pipeline {
             environment {
                 CREDS = credentials('4d6f64be-d26d-4f95-8de3-b6a9b0beb311')
             }
+            when {
+                allOf {
+                    branch '**/main/*'
+                    tag '*.*.*'
+                }
+            }
             steps {
                 sh script: 'python -m twine upload --repository-url https://git.reslate.systems/api/packages/${CREDS_USR}/pypi -u ${CREDS_USR} -p ${CREDS_PSW} --non-interactive --disable-progress-bar --verbose dist/*'
             }
