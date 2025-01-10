@@ -11,7 +11,7 @@ dependencies = [
     "aiohttp[speedups]",
 ]
 requires-python = ">=3.11"
-description = "A tool to rapidly fetch fetch MLST profiles given sequences for various diseases."
+description = "A library to rapidly fetch fetch MLST profiles given sequences for various diseases."
 
 [tool.setuptools_scm]
 
