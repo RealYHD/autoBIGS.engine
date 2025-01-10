@@ -82,7 +82,9 @@ class BIGSdbMLSTProfiler(AbstractAsyncContextManager):
             for exact_match_loci, exact_match_alleles in schema_exact_matches.items():
                 for exact_match_allele in exact_match_alleles:
                     allele_map[exact_match_loci].append(Allele(exact_match_loci, exact_match_allele["allele_id"], None))
-            return MLSTProfile(allele_map, schema_fields_returned["ST"], schema_fields_returned["clonal_complex"])
+            if len(allele_map) == 0:
+                raise ValueError("Passed in no alleles.")
+            return MLSTProfile(dict(allele_map), schema_fields_returned["ST"], schema_fields_returned["clonal_complex"])
 
     async def profile_string(self, string: str, exact: bool = False) -> MLSTProfile:
         alleles = self.fetch_mlst_allele_variants(string, exact)
@@ -93,7 +95,7 @@ class BIGSdbMLSTProfiler(AbstractAsyncContextManager):
         async for named_string in namedStrings:
             try:
                 yield (named_string.name, await self.profile_string(named_string.sequence, exact))
-            except NoBIGSdbExactMatchesException as e:
+            except NoBIGSdbMatchesException as e:
                 if stop_on_fail:
                     raise e
                 yield (named_string.name, None)

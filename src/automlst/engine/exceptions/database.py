@@ -6,9 +6,9 @@ class BIGSDbDatabaseAPIException(Exception):
 
 class NoBIGSdbMatchesException(BIGSDbDatabaseAPIException):
     def __init__(self, database_name: str, database_schema_id: int, *args):
-        super().__init__(f"No exact match found with schema with ID {database_schema_id}  in the database \"{database_name}\".", *args)
+        super().__init__(f"No matches found with schema with ID {database_schema_id}  in the database \"{database_name}\".", *args)
 
-class NoBIGSdbExactMatchesException(BIGSDbDatabaseAPIException):
+class NoBIGSdbExactMatchesException(NoBIGSdbMatchesException):
     def __init__(self, database_name: str, database_schema_id: int, *args):
         super().__init__(f"No exact match found with schema with ID {database_schema_id}  in the database \"{database_name}\".", *args)
 
