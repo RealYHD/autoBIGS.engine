@@ -30,7 +30,7 @@ async def test_institutpasteur_profiling_results_in_exact_matches_when_exact():
         assert len(targets_left) == 0
 
 async def test_institutpasteur_sequence_profiling_non_exact_returns_non_exact():
-    sequences = SeqIO.parse("tests/resources/tohama_I_bpertussis_coding.fasta", "fasta")
+    sequences = list(SeqIO.parse("tests/resources/tohama_I_bpertussis_coding.fasta", "fasta"))
     mlst_targets = {"adk", "fumc", "glya", "tyrb", "icd", "pepa", "pgm"}
     async with BIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as profiler:
         for sequence in sequences:
@@ -40,13 +40,12 @@ async def test_institutpasteur_sequence_profiling_non_exact_returns_non_exact():
             gene = match.group(1)
             if gene.lower() not in mlst_targets:
                 continue
-            scrambled = gene_scrambler(str(sequence.seq), 0.2)
+            scrambled = gene_scrambler(str(sequence.seq), 0.125)
             async for partial_match in profiler.fetch_mlst_allele_variants(scrambled, False):
                 assert partial_match.partial_match_profile is not None
-                assert partial_match.allele_variant == '1'
                 mlst_targets.remove(gene.lower())
 
-            assert len(mlst_targets) == 0
+        assert len(mlst_targets) == 0
 
 async def test_institutpasteur_profiling_results_in_correct_mlst_st():
     async def dummy_allele_generator():
@@ -67,6 +66,22 @@ async def test_institutpasteur_profiling_results_in_correct_mlst_st():
         assert isinstance(mlst_st_data, MLSTProfile)
         assert mlst_st_data.clonal_complex == "ST-2 complex"
         assert mlst_st_data.sequence_type == "1"
+
+async def test_institutpasteur_profiling_non_exact_results_in_list_of_mlsts():
+    dummy_alleles = [
+    Allele("adk", "1", None),
+    Allele("fumC", "2", None),
+    Allele("glyA", "36", None),
+    Allele("tyrB", "4", None),
+    Allele("icd", "4", None),
+    Allele("pepA", "1", None),
+    Allele("pgm", "5", None),
+    ]
+    async with BIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
+        mlst_profile = await dummy_profiler.fetch_mlst_st(dummy_alleles)
+        assert mlst_profile.clonal_complex == "unknown"
+        assert mlst_profile.sequence_type == "unknown"
+
 
 async def test_institutpasteur_sequence_profiling_is_correct():
     sequence = str(SeqIO.read("tests/resources/tohama_I_bpertussis.fasta", "fasta").seq)

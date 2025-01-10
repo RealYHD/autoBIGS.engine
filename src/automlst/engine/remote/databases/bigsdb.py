@@ -59,28 +59,29 @@ class BIGSdbMLSTProfiler(AbstractAsyncContextManager):
 
 
 
-    async def fetch_mlst_st(self, alleles: AsyncIterable[Allele]) -> MLSTProfile:
+    async def fetch_mlst_st(self, alleles: Union[AsyncIterable[Allele], Iterable[Allele]]) -> MLSTProfile:
         uri_path = "designations"
         allele_request_dict: dict[str, list[dict[str, str]]] = defaultdict(list)
-        async for allele in alleles:
-            allele_request_dict[allele.allele_loci].append({"allele": str(allele.allele_variant)})
-
+        if isinstance(alleles, AsyncIterable):
+            async for allele in alleles:
+                allele_request_dict[allele.allele_loci].append({"allele": str(allele.allele_variant)})
+        else:
+            for allele in alleles:
+                allele_request_dict[allele.allele_loci].append({"allele": str(allele.allele_variant)})
         request_json = {
             "designations": allele_request_dict
         }
         async with self._http_client.post(uri_path, json=request_json) as response:
             response_json: dict = await response.json()
-            if "exact_matches" not in response_json:
-                raise NoBIGSdbExactMatchesException(self._database_name, self._schema_id)
-            schema_exact_matches: dict = response_json["exact_matches"]
-            response_json.setdefault("fields", dict)
+            allele_map: dict[str, list[Allele]] = defaultdict(list)
+            response_json.setdefault("fields", dict())
             schema_fields_returned: dict[str, str] = response_json["fields"]
             schema_fields_returned.setdefault("ST", "unknown")
             schema_fields_returned.setdefault("clonal_complex", "unknown")
-            allele_map: dict[str, list[Allele]] = defaultdict(list)
+            schema_exact_matches: dict = response_json["exact_matches"]
             for exact_match_loci, exact_match_alleles in schema_exact_matches.items():
                 for exact_match_allele in exact_match_alleles:
-                    allele_map[exact_match_loci].append(Allele(exact_match_loci, exact_match_allele["allele_id"]))
+                    allele_map[exact_match_loci].append(Allele(exact_match_loci, exact_match_allele["allele_id"], None))
             return MLSTProfile(allele_map, schema_fields_returned["ST"], schema_fields_returned["clonal_complex"])
 
     async def profile_string(self, string: str, exact: bool = False) -> MLSTProfile:
