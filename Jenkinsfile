@@ -33,10 +33,10 @@ pipeline {
             parallel {
                 stage ("git.reslate.systems") {
                     environment {
-                        CREDS = credentials('4d6f64be-d26d-4f95-8de3-b6a9b0beb311')
+                        TOKEN = credentials('git.reslate.systems')
                     }
                     steps {
-                        sh returnStatus: true, script: 'python -m twine upload --repository-url https://git.reslate.systems/api/packages/${CREDS_USR}/pypi -u ${CREDS_USR} -p ${CREDS_PSW} --non-interactive --disable-progress-bar --verbose dist/*'
+                        sh returnStatus: true, script: 'python -m twine upload --repository-url https://git.reslate.systems/api/packages/ydeng/pypi -u __token__ -p ${TOKEN} --non-interactive --disable-progress-bar --verbose dist/*'
                     }
                 }
                 stage ("test.pypi.org") {
