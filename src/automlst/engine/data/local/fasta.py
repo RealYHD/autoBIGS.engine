@@ -3,7 +3,7 @@ from io import TextIOWrapper
 from typing import Any, AsyncGenerator, Generator, Iterable, Sequence, Union
 from Bio import SeqIO
 
-from automlst.engine.data.genomics import NamedString
+from automlst.engine.data.structures.genomics import NamedString
 
 async def read_fasta(handle: Union[str, TextIOWrapper]) -> AsyncGenerator[NamedString, Any]:
     fasta_sequences = asyncio.to_thread(SeqIO.parse, handle=handle, format="fasta")

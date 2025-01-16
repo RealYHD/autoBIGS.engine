@@ -3,10 +3,10 @@ import re
 from typing import Collection, Sequence, Union
 from Bio import SeqIO
 import pytest
-from automlst.engine.data.genomics import NamedString
-from automlst.engine.data.mlst import Allele, MLSTProfile
+from automlst.engine.data.structures.genomics import NamedString
+from automlst.engine.data.structures.mlst import Allele, MLSTProfile
 from automlst.engine.exceptions.database import NoBIGSdbExactMatchesException, NoBIGSdbMatchesException
-from automlst.engine.remote.databases.bigsdb import BIGSdbIndex, BIGSdbMLSTProfiler
+from automlst.engine.data.remote.databases.bigsdb import BIGSdbIndex, BIGSdbMLSTProfiler
 
 def gene_scrambler(gene: str, mutation_site_count: Union[int, float], alphabet: Sequence[str] = ["A", "T", "C", "G"]):
     rand = random.Random(gene)

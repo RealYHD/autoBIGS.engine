@@ -2,11 +2,9 @@ import asyncio
 from numbers import Number
 from os import path
 from typing import Any, AsyncGenerator, Collection, Iterable, Sequence, Union
-from automlst.engine.data.genomics import NamedString, SangerTraceData
+from automlst.engine.data.structures.genomics import NamedString, SangerTraceData
 from Bio.SeqRecord import SeqRecord
 from Bio import SeqIO, Align
-
-from automlst.engine.remote.databases.ncbi.genbank import fetch_ncbi_genbank
 
 
 def _biopython_read_abif_sequence(seq_path: str) -> SeqRecord:
@@ -114,13 +112,3 @@ def _biopython_local_pairwise_alignment(reference: NamedString, query: NamedStri
         0]  # take the best alignment
     # TODO actually assemble the consensus sequence here
     raise NotImplementedError("Pairwise alignment unto reference consensus assembly function not ready.")
-
-
-async def reference_consensus_assembly(reference: Union[NamedString, str], sanger_traces: Iterable[SangerTraceData]) -> AsyncGenerator[NamedString, Any]:
-    if isinstance(reference, str):
-        reference_seq = NamedString(name=reference, sequence=(await fetch_ncbi_genbank(reference)).sequence)
-    else:
-        reference_seq: NamedString  = reference
-    for sanger_trace in sanger_traces:
-        yield NamedString("NA", "NA")
-        raise NotImplementedError("Pairwise alignment unto reference consensus assembly function not ready.")
