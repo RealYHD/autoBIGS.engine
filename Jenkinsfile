@@ -39,15 +39,15 @@ pipeline {
                         sh returnStatus: true, script: 'python -m twine upload --repository-url https://git.reslate.systems/api/packages/ydeng/pypi -u __token__ -p ${TOKEN} --non-interactive --disable-progress-bar --verbose dist/*'
                     }
                 }
-                stage ("test.pypi.org") {
+                stage ("pypi.org") {
                     when {
                         tag '*.*'
                     }
                     environment {
-                        TOKEN = credentials('test.pypi.org')
+                        TOKEN = credentials('pypi.org')
                     }
                     steps {
-                        sh returnStatus: true, script: 'python -m twine upload -r testpypi -u __token__ -p ${TOKEN} --non-interactive --disable-progress-bar --verbose dist/*'
+                        sh returnStatus: true, script: 'python -m twine upload -u __token__ -p ${TOKEN} --non-interactive --disable-progress-bar --verbose dist/*'
                     }
                 }
             }
