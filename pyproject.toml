@@ -5,6 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "automlst.engine"
 dynamic = ["version"]
+readme = "README.md"
 
 dependencies = [
     "biopython",

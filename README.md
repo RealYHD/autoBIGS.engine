@@ -1,12 +1,25 @@
-# autoMLST
+# autoMLST.Engine
 
-A CLI/library for rapidly performing MLST typing via accessing pubMLST and InstitutPasteur MSLT databases.
+A python library implementing common BIGSdb MLST schemes and databases. Implementation follows the RESTful API outlined by the official [BIGSdb documentation](https://bigsdb.readthedocs.io/en/latest/rest.html) up to `V1.50.0`.
 
-# Components
+## Features
 
-## automlst.cli
+Briefly, this library can:
+- Import multiple `FASTA` files
+- Fetch the available BIGSdb databases that is currently live and available
+- Fetch the available BIGSdb database schemas for a given MLST database
+- Retrieve exact/non-exact MLST allele variant IDs based off a sequence
+- Retrieve MLST sequence type IDs based off a sequence
+- Output all results to a single CSV
 
-The command line interface, sets up very minimal and mostly makes calls to the library. Uses argparse and is split into two parts:
+Furthermore, this library is highly asynchronous where any potentially blocking operation, ranging from parsing FASTAs to performing HTTP requests are at least asynchronous, if not fully multithreaded.
 
-- `automlst info`: Provides user information on available databases to pull from, and the schemas available.
-- `automlst exactmatch`: Provides users the ability to request exact match results from a given database and schema
+## Usage
+
+This library can be installed through pip. Learn how to [setup and install pip first](https://pip.pypa.io/en/stable/installation/).
+
+Then, it's as easy as running `pip install automlst-engine` in any terminal that has pip in it's path (any terminal where `pip --version` returns a valid version and install path).
+
+### CLI usage
+
+This is a independent python library and thus does not have any form of direct user interface. One way of using it could be to create your own Python script that makes calls to this libraries functions. Alternatively, you may use `automlst-cli`, a `Python` package that implements a CLI for calling this library.
