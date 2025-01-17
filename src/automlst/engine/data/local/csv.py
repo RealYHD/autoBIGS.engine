@@ -3,7 +3,7 @@ from io import TextIOWrapper
 from os import PathLike
 from typing import AsyncIterable, Iterable, Mapping, Sequence, Union
 
-from automlst.engine.data.mlst import Allele, MLSTProfile
+from automlst.engine.data.structures.mlst import Allele, MLSTProfile
 
 
 def dict_loci_alleles_variants_from_loci(alleles_map: Mapping[str, Sequence[Allele]]):

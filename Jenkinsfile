@@ -30,11 +30,26 @@ pipeline {
             }
         }
         stage("publish") {
-            environment {
-                CREDS = credentials('4d6f64be-d26d-4f95-8de3-b6a9b0beb311')
-            }
-            steps {
-                sh returnStatus: true, script: 'python -m twine upload --repository-url https://git.reslate.systems/api/packages/${CREDS_USR}/pypi -u ${CREDS_USR} -p ${CREDS_PSW} --non-interactive --disable-progress-bar --verbose dist/*'
+            parallel {
+                stage ("git.reslate.systems") {
+                    environment {
+                        TOKEN = credentials('git.reslate.systems')
+                    }
+                    steps {
+                        sh returnStatus: true, script: 'python -m twine upload --repository-url https://git.reslate.systems/api/packages/ydeng/pypi -u __token__ -p ${TOKEN} --non-interactive --disable-progress-bar --verbose dist/*'
+                    }
+                }
+                stage ("test.pypi.org") {
+                    when {
+                        tag '*.*'
+                    }
+                    environment {
+                        TOKEN = credentials('test.pypi.org')
+                    }
+                    steps {
+                        sh returnStatus: true, script: 'python -m twine upload -r testpypi -u __token__ -p ${TOKEN} --non-interactive --disable-progress-bar --verbose dist/*'
+                    }
+                }
             }
         }
     }

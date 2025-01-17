@@ -1,4 +1,4 @@
-from automlst.engine.local.fasta import read_fasta
+from automlst.engine.data.local.fasta import read_fasta
 
 
 async def test_fasta_reader_not_none():
