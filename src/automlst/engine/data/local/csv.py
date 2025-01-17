@@ -11,8 +11,8 @@ def dict_loci_alleles_variants_from_loci(alleles_map: Mapping[str, Sequence[Alle
         if len(alleles) == 1:
             result_dict[loci] = alleles[0].allele_variant
         else:
+            result_locis = list()
             for allele in alleles:
-                result_locis = list()
                 result_locis.append(allele.allele_variant)
                 result_dict[loci] = result_locis
     return result_dict
