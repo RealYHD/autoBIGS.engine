@@ -1,7 +1,6 @@
 import csv
-from io import TextIOWrapper
 from os import PathLike
-from typing import AsyncIterable, Iterable, Mapping, Sequence, Union
+from typing import AsyncIterable, Mapping, Sequence, Union
 
 from automlst.engine.data.structures.mlst import Allele, MLSTProfile
 
@@ -11,10 +10,11 @@ def dict_loci_alleles_variants_from_loci(alleles_map: Mapping[str, Sequence[Alle
     for loci, alleles in alleles_map.items():
         if len(alleles) == 1:
             result_dict[loci] = alleles[0].allele_variant
-        for allele in alleles:
-            result_locis = list()
-            result_locis.append(allele.allele_variant)
-            result_dict[loci] = result_locis
+        else:
+            for allele in alleles:
+                result_locis = list()
+                result_locis.append(allele.allele_variant)
+                result_dict[loci] = result_locis
     return result_dict
 
 
