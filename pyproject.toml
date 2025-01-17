@@ -6,7 +6,12 @@ build-backend = "setuptools.build_meta"
 name = "automlst.engine"
 dynamic = ["version"]
 readme = "README.md"
-
+authors = [
+  {name = "Harrison Deng"},
+]
+maintainers = [
+  {name = "Harrison Deng"},
+]
 dependencies = [
     "biopython",
     "aiohttp[speedups]",

@@ -1,0 +1,43 @@
+{% set name = "automlst.engine" %}
+{% set version = "0.5.2.dev0+gb89f24a.d20250117" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: file:///workspaces/automlst.engine/dist/automlst_engine-0.5.2.dev0%2Bgb89f24a.d20250117.tar.gz
+  sha256: 690465cbb8da3d104b87524e0cc48696e8be9e22fe83cdc59b64ababd9177c1f
+
+build:
+  noarch: python
+  script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+  number: 0
+
+requirements:
+  host:
+    - python >=3.11
+    - setuptools >=64
+    - setuptools-scm >=8
+    - pip
+  run:
+    - python >=3.11
+    - biopython
+    - aiohttp
+
+test:
+  imports:
+    - automlst
+  commands:
+    - pip check
+  requires:
+    - pip
+
+about:
+  summary: A library to rapidly fetch fetch MLST profiles given sequences for various diseases.
+  license: GPL-3.0
+  license_file: LICENSE
+
+extra:
+  recipe-maintainers:
+    - RealYHD

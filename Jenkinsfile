@@ -2,26 +2,28 @@ pipeline {
     agent {
         kubernetes {
             cloud 'rsys-devel'
-            defaultContainer 'pip'
-            inheritFrom 'pip'
+            defaultContainer 'miniforge'
+            inheritFrom 'miniforge'
         }
     }
     stages {
         stage("install") {
             steps {
-                sh 'python -m pip install -r requirements.txt'
+                sh 'conda env update -n base -f environment.yml'
             }
         }
         stage("unit tests") {
             steps {
-                sh returnStatus: true, script: "python -m pytest --junitxml=test_results.xml --cov=src --cov-report xml:coverage.xml"
+                sh returnStatus: true, script: "pytest --junitxml=test_results.xml --cov=src --cov-report xml:coverage.xml"
                 xunit checksName: '', tools: [JUnit(excludesPattern: '', pattern: 'test_results.xml', stopProcessingIfError: true)]
                 recordCoverage(tools: [[parser: 'COBERTURA', pattern: 'coverage.xml']])
             }
         }
         stage("build") {
             steps {
-                sh "python -m build"
+                sh "build"
+                sh "grayskull pypi dist/*.tar.gz"
+                sh "conda-build automlst.engine"
             }
         }
         stage("archive") {
@@ -31,7 +33,7 @@ pipeline {
         }
         stage("publish") {
             parallel {
-                stage ("git.reslate.systems") {
+                stage ("internal") {
                     environment {
                         TOKEN = credentials('git.reslate.systems')
                     }
@@ -39,12 +41,13 @@ pipeline {
                         sh returnStatus: true, script: 'python -m twine upload --repository-url https://git.reslate.systems/api/packages/ydeng/pypi -u __token__ -p ${TOKEN} --non-interactive --disable-progress-bar --verbose dist/*'
                     }
                 }
-                stage ("pypi.org") {
+                stage ("external") {
                     when {
                         tag '*.*'
                     }
                     environment {
-                        TOKEN = credentials('pypi.org')
+                        PYPI_TOKEN = credentials('pypi.org')
+                        CONDA_TOKEN = credentials('anaconda.org')
                     }
                     steps {
                         sh returnStatus: true, script: 'python -m twine upload -u __token__ -p ${TOKEN} --non-interactive --disable-progress-bar --verbose dist/*'
