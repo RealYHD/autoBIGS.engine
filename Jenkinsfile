@@ -2,7 +2,7 @@ pipeline {
     agent {
         kubernetes {
             cloud 'rsys-devel'
-            defaultContainer 'miniforge'
+            defaultContainer 'miniforge3'
             inheritFrom 'miniforge'
         }
     }
