@@ -1,0 +1,8 @@
+aiohttp[speedups]
+biopython
+pytest
+pytest-asyncio
+build
+twine
+setuptools_scm
+pytest-cov
