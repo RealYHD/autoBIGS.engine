@@ -20,7 +20,8 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"mechatroner.rainbow-csv"
+				"mechatroner.rainbow-csv",
+				"piotrpalarz.vscode-gitignore-generator"
 			]
 		}
 	}

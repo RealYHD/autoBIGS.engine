@@ -21,14 +21,14 @@ pipeline {
         }
         stage("build") {
             steps {
-                sh "build"
+                sh "python -m build"
                 sh "grayskull pypi dist/*.tar.gz"
-                sh "conda-build automlst.engine"
+                sh "conda-build automlst.engine --output-folder conda-bld"
             }
         }
         stage("archive") {
             steps {
-                archiveArtifacts artifacts: 'dist/*.tar.gz, dist/*.whl', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
+                archiveArtifacts artifacts: 'dist/*.tar.gz, dist/*.whl conda-bld/**/*.conda', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
             }
         }
         stage("publish") {
