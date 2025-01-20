@@ -20,6 +20,10 @@ pipeline {
             }
         }
         stage("build") {
+            environment {
+                GIT_AUTHOR_NAME = "Harrison Deng"
+                GIT_AUTHOR_EMAIL = "yunyangdeng@outlook.com"
+            }
             steps {
                 sh "python -m build"
                 sh "grayskull pypi dist/*.tar.gz"
