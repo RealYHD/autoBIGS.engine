@@ -26,7 +26,6 @@ pipeline {
             }
             steps {
                 sh "python -m build"
-                sh "grayskull pypi dist/*.tar.gz"
                 sh "conda-build automlst.engine --output-folder conda-bld"
             }
         }
