@@ -2,49 +2,55 @@ pipeline {
     agent {
         kubernetes {
             cloud 'rsys-devel'
-            defaultContainer 'pip'
-            inheritFrom 'pip'
+            defaultContainer 'miniforge3'
+            inheritFrom 'miniforge'
         }
     }
     stages {
         stage("install") {
             steps {
-                sh 'python -m pip install -r requirements.txt'
+                sh 'conda env update -n base -f environment.yml'
             }
         }
         stage("unit tests") {
             steps {
-                sh returnStatus: true, script: "python -m pytest --junitxml=test_results.xml --cov=src --cov-report xml:coverage.xml"
+                sh returnStatus: true, script: "pytest --junitxml=test_results.xml --cov=src --cov-report xml:coverage.xml"
                 xunit checksName: '', tools: [JUnit(excludesPattern: '', pattern: 'test_results.xml', stopProcessingIfError: true)]
                 recordCoverage(tools: [[parser: 'COBERTURA', pattern: 'coverage.xml']])
             }
         }
         stage("build") {
+            environment {
+                GIT_AUTHOR_NAME = "Harrison Deng"
+                GIT_AUTHOR_EMAIL = "yunyangdeng@outlook.com"
+            }
             steps {
                 sh "python -m build"
+                sh "conda-build automlst.engine --output-folder conda-bld"
             }
         }
         stage("archive") {
             steps {
-                archiveArtifacts artifacts: 'dist/*.tar.gz, dist/*.whl', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
+                archiveArtifacts artifacts: 'dist/*.tar.gz, dist/*.whl conda-bld/**/*.conda', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
             }
         }
         stage("publish") {
             parallel {
-                stage ("git.reslate.systems") {
+                stage ("internal") {
                     environment {
-                        CREDS = credentials('username-password-rs-git')
+                        TOKEN = credentials('git.reslate.systems')
                     }
                     steps {
-                        sh returnStatus: true, script: 'python -m twine upload --repository-url https://git.reslate.systems/api/packages/ydeng/pypi -u ${CREDS_USR} -p ${CREDS__PSW} --non-interactive --disable-progress-bar --verbose dist/*'
+                        sh returnStatus: true, script: 'python -m twine upload --repository-url https://git.reslate.systems/api/packages/ydeng/pypi -u __token__ -p ${TOKEN} --non-interactive --disable-progress-bar --verbose dist/*'
                     }
                 }
-                stage ("pypi.org") {
+                stage ("external") {
                     when {
                         tag '*.*'
                     }
                     environment {
-                        TOKEN = credentials('pypi.org')
+                        PYPI_TOKEN = credentials('pypi.org')
+                        CONDA_TOKEN = credentials('anaconda.org')
                     }
                     steps {
                         sh returnStatus: true, script: 'python -m twine upload -u __token__ -p ${TOKEN} --non-interactive --disable-progress-bar --verbose dist/*'
