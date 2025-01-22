@@ -3,7 +3,7 @@ requires = ["setuptools>=64", "setuptools_scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "autobigsst.engine"
+name = "autoBIGS.engine"
 dynamic = ["version"]
 readme = "README.md"
 
@@ -15,8 +15,8 @@ requires-python = ">=3.11"
 description = "A library to rapidly fetch fetch MLST profiles given sequences for various diseases."
 
 [project.urls]
-Repository = "https://github.com/RealYHD/autobigsst.engine.git"
-Issues = "https://github.com/RealYHD/autobigsst.engine/issues"
+Repository = "https://github.com/RealYHD/autobigs.engine.git"
+Issues = "https://github.com/RealYHD/autobigs.engine/issues"
 
 [tool.setuptools_scm]
 

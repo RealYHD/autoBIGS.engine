@@ -1,5 +1,5 @@
-from autobigsst.engine.data.local.csv import dict_loci_alleles_variants_from_loci
-from autobigsst.engine.data.structures.mlst import Allele
+from autobigs.engine.data.local.csv import dict_loci_alleles_variants_from_loci
+from autobigs.engine.data.structures.mlst import Allele
 
 
 def test_dict_loci_alleles_variants_from_loci_single_loci_not_list():

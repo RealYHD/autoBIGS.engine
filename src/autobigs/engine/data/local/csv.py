@@ -2,7 +2,7 @@ import csv
 from os import PathLike
 from typing import AsyncIterable, Mapping, Sequence, Union
 
-from autobigsst.engine.data.structures.mlst import Allele, MLSTProfile
+from autobigs.engine.data.structures.mlst import Allele, MLSTProfile
 
 
 def dict_loci_alleles_variants_from_loci(alleles_map: Mapping[str, Sequence[Allele]]):
