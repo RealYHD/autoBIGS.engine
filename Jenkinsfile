@@ -2,42 +2,36 @@ pipeline {
     agent {
         kubernetes {
             cloud 'rsys-devel'
-            defaultContainer 'miniforge3'
-            inheritFrom 'miniforge'
+            defaultContainer 'pip'
+            inheritFrom 'pip'
         }
     }
     stages {
         stage("install") {
             steps {
-                sh 'conda env update -n base -f environment.yml'
+                sh 'python -m pip install -r requirements.txt'
             }
         }
         stage("unit tests") {
             steps {
-                sh returnStatus: true, script: "pytest --junitxml=test_results.xml --cov=src --cov-report xml:coverage.xml"
+                sh returnStatus: true, script: "python -m pytest --junitxml=test_results.xml --cov=src --cov-report xml:coverage.xml"
                 xunit checksName: '', tools: [JUnit(excludesPattern: '', pattern: 'test_results.xml', stopProcessingIfError: true)]
                 recordCoverage(tools: [[parser: 'COBERTURA', pattern: 'coverage.xml']])
             }
         }
         stage("build") {
-            environment {
-                GIT_AUTHOR_NAME = "Harrison Deng"
-                GIT_AUTHOR_EMAIL = "yunyangdeng@outlook.com"
-            }
             steps {
                 sh "python -m build"
-                sh "grayskull pypi dist/*.tar.gz"
-                sh "conda-build autobigsst.engine --output-folder conda-bld"
             }
         }
         stage("archive") {
             steps {
-                archiveArtifacts artifacts: 'dist/*.tar.gz, dist/*.whl conda-bld/**/*.conda', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
+                archiveArtifacts artifacts: 'dist/*.tar.gz, dist/*.whl', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
             }
         }
         stage("publish") {
             parallel {
-                stage ("internal") {
+                stage ("git.reslate.systems") {
                     environment {
                         CREDS = credentials('username-password-rs-git')
                     }
@@ -45,12 +39,12 @@ pipeline {
                         sh returnStatus: true, script: 'python -m twine upload --repository-url https://git.reslate.systems/api/packages/ydeng/pypi -u ${CREDS_USR} -p ${CREDS__PSW} --non-interactive --disable-progress-bar --verbose dist/*'
                     }
                 }
-                stage ("external") {
+                stage ("pypi.org") {
                     when {
                         tag '*.*'
                     }
                     environment {
-                        PYPI_TOKEN = credentials('pypi.org')
+                        TOKEN = credentials('pypi.org')
                     }
                     steps {
                         sh returnStatus: true, script: 'python -m twine upload -u __token__ -p ${TOKEN} --non-interactive --disable-progress-bar --verbose dist/*'

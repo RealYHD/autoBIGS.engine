@@ -358,4 +358,3 @@ package
 
 output
 *.private.*
-conda-bld
