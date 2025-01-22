@@ -5,9 +5,9 @@ from typing import Any, AsyncGenerator, AsyncIterable, Collection, Generator, It
 
 from aiohttp import ClientSession, ClientTimeout
 
-from automlst.engine.data.structures.genomics import NamedString
-from automlst.engine.data.structures.mlst import Allele, PartialAllelicMatchProfile, MLSTProfile
-from automlst.engine.exceptions.database import NoBIGSdbExactMatchesException, NoBIGSdbMatchesException, NoSuchBIGSdbDatabaseException
+from autobigsst.engine.data.structures.genomics import NamedString
+from autobigsst.engine.data.structures.mlst import Allele, PartialAllelicMatchProfile, MLSTProfile
+from autobigsst.engine.exceptions.database import NoBIGSdbExactMatchesException, NoBIGSdbMatchesException, NoSuchBIGSdbDatabaseException
 
 class BIGSdbMLSTProfiler(AbstractAsyncContextManager):
 

@@ -12,3 +12,6 @@ dependencies:
 - pytest-cov
 - grayskull
 - conda-build
+- anaconda-client
+- conda-utils
+- bioconda-build

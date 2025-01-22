@@ -26,7 +26,8 @@ pipeline {
             }
             steps {
                 sh "python -m build"
-                sh "conda-build automlst.engine --output-folder conda-bld"
+                sh "grayskull pypi dist/*.tar.gz"
+                sh "conda-build autobigsst.engine --output-folder conda-bld"
             }
         }
         stage("archive") {
@@ -38,10 +39,10 @@ pipeline {
             parallel {
                 stage ("internal") {
                     environment {
-                        TOKEN = credentials('git.reslate.systems')
+                        CREDS = credentials('username-password-rs-git')
                     }
                     steps {
-                        sh returnStatus: true, script: 'python -m twine upload --repository-url https://git.reslate.systems/api/packages/ydeng/pypi -u __token__ -p ${TOKEN} --non-interactive --disable-progress-bar --verbose dist/*'
+                        sh returnStatus: true, script: 'python -m twine upload --repository-url https://git.reslate.systems/api/packages/ydeng/pypi -u ${CREDS_USR} -p ${CREDS__PSW} --non-interactive --disable-progress-bar --verbose dist/*'
                     }
                 }
                 stage ("external") {
@@ -50,7 +51,6 @@ pipeline {
                     }
                     environment {
                         PYPI_TOKEN = credentials('pypi.org')
-                        CONDA_TOKEN = credentials('anaconda.org')
                     }
                     steps {
                         sh returnStatus: true, script: 'python -m twine upload -u __token__ -p ${TOKEN} --non-interactive --disable-progress-bar --verbose dist/*'

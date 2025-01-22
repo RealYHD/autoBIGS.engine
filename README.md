@@ -1,4 +1,4 @@
-# autoMLST.Engine
+# autobigsst.Engine
 
 A python library implementing common BIGSdb MLST schemes and databases. Implementation follows the RESTful API outlined by the official [BIGSdb documentation](https://bigsdb.readthedocs.io/en/latest/rest.html) up to `V1.50.0`.
 
@@ -18,8 +18,8 @@ Furthermore, this library is highly asynchronous where any potentially blocking 
 
 This library can be installed through pip. Learn how to [setup and install pip first](https://pip.pypa.io/en/stable/installation/).
 
-Then, it's as easy as running `pip install automlst-engine` in any terminal that has pip in it's path (any terminal where `pip --version` returns a valid version and install path).
+Then, it's as easy as running `pip install autobigsst-engine` in any terminal that has pip in it's path (any terminal where `pip --version` returns a valid version and install path).
 
 ### CLI usage
 
-This is a independent python library and thus does not have any form of direct user interface. One way of using it could be to create your own Python script that makes calls to this libraries functions. Alternatively, you may use `automlst-cli`, a `Python` package that implements a CLI for calling this library.
+This is a independent python library and thus does not have any form of direct user interface. One way of using it could be to create your own Python script that makes calls to this libraries functions. Alternatively, you may use `autobigsst-cli`, a `Python` package that implements a CLI for calling this library.

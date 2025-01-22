@@ -6,10 +6,10 @@
     "configurations": [
         
         {
-            "name": "automlst info -lschema pubmlst_bordetella_seqdef",
+            "name": "autobigsst info -lschema pubmlst_bordetella_seqdef",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/src/automlst/cli/program.py",
+            "program": "${workspaceFolder}/src/autobigsst/cli/program.py",
             "console": "integratedTerminal",
             "args": [
                 "info",
