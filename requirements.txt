@@ -1,4 +1,4 @@
-aiohttp[speedups]==3.11
+aiohttp[speedups]==3.11.*
 biopython==1.85
 pytest
 pytest-asyncio

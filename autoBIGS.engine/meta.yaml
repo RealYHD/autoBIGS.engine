@@ -1,0 +1,43 @@
+{% set name = "autoBIGS.engine" %}
+{% set version = "0.7.2.dev0+g744a6c2.d20250123" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: file:///workspaces/automlst.engine/dist/autobigs_engine-0.7.2.dev0%2Bg744a6c2.d20250123.tar.gz
+  sha256: 3ae51ca757fa27cef577aa7733d8308ca5b74f86dc7996149bc555d0468d938e
+
+build:
+  noarch: python
+  script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+  number: 0
+
+requirements:
+  host:
+    - python >=3.11
+    - setuptools >=64
+    - setuptools-scm >=8
+    - pip
+  run:
+    - python >=3.11
+    - biopython ==1.85
+    - aiohttp ==3.11.*
+
+test:
+  imports:
+    - autobigs
+  commands:
+    - pip check
+  requires:
+    - pip
+
+about:
+  summary: A library to rapidly fetch fetch MLST profiles given sequences for various diseases.
+  license: GPL-3.0
+  license_file: LICENSE
+
+extra:
+  recipe-maintainers:
+    - RealYHD
