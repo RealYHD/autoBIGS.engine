@@ -8,15 +8,15 @@ dynamic = ["version"]
 readme = "README.md"
 
 dependencies = [
-    "biopython",
-    "aiohttp[speedups]",
+    "biopython==1.85",
+    "aiohttp[speedups]==3.11",
 ]
 requires-python = ">=3.11"
 description = "A library to rapidly fetch fetch MLST profiles given sequences for various diseases."
 
 [project.urls]
-Repository = "https://github.com/RealYHD/autobigs.engine.git"
-Issues = "https://github.com/RealYHD/autobigs.engine/issues"
+Repository = "https://github.com/RealYHD/autoBIGS.engine"
+Issues = "https://github.com/RealYHD/autoBIGS.engine/issues"
 
 [tool.setuptools_scm]
 
