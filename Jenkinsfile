@@ -48,9 +48,6 @@ pipeline {
                     }
                     steps {
                         sh returnStatus: true, script: 'python -m twine upload -u __token__ -p ${TOKEN} --non-interactive --disable-progress-bar --verbose dist/*'
-                        container('miniforge3') {
-                            sh 'conda install python3.10 bioconda::bioconda-utils'
-                        }
                     }
                 }
             }
