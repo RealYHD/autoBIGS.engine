@@ -23,39 +23,40 @@ class BIGSdbMLSTProfiler(AbstractAsyncContextManager):
     async def fetch_mlst_allele_variants(self, sequence_string: str, exact: bool) -> AsyncGenerator[Allele, Any]:
         # See https://bigsdb.pasteur.fr/api/db/pubmlst_bordetella_seqdef/schemes
         uri_path = "sequence"
-        response = await self._http_client.post(uri_path, json={
+
+        async with self._http_client.post(uri_path, json={
             "sequence": sequence_string,
             "partial_matches": not exact
-        })
-        sequence_response: dict = await response.json()
+        }) as response:
+            sequence_response: dict = await response.json()
 
-        if "exact_matches" in sequence_response:
-            # loci -> list of alleles with id and loci
-            exact_matches: dict[str, Sequence[dict[str, str]]] = sequence_response["exact_matches"]  
-            for allele_loci, alleles in exact_matches.items():
-                for allele in alleles:
-                    alelle_id = allele["allele_id"]
-                    yield Allele(allele_loci=allele_loci, allele_variant=alelle_id, partial_match_profile=None)
-        elif "partial_matches" in sequence_response:
-            if exact:
-                raise NoBIGSdbExactMatchesException(self._database_name, self._schema_id)
-            partial_matches: dict[str, dict[str, Union[str, float, int]]] = sequence_response["partial_matches"] 
-            for allele_loci, partial_match in partial_matches.items():
-                if len(partial_match) <= 0:
-                    continue
-                partial_match_profile = PartialAllelicMatchProfile(
-                    percent_identity=float(partial_match["identity"]),
-                    mismatches=int(partial_match["mismatches"]),
-                    bitscore=float(partial_match["bitscore"]),
-                    gaps=int(partial_match["gaps"])
-                )
-                yield Allele(
-                    allele_loci=allele_loci,
-                    allele_variant=str(partial_match["allele"]),
-                    partial_match_profile=partial_match_profile
-                )
-        else:
-            raise NoBIGSdbMatchesException(self._database_name, self._schema_id)
+            if "exact_matches" in sequence_response:
+                # loci -> list of alleles with id and loci
+                exact_matches: dict[str, Sequence[dict[str, str]]] = sequence_response["exact_matches"]  
+                for allele_loci, alleles in exact_matches.items():
+                    for allele in alleles:
+                        alelle_id = allele["allele_id"]
+                        yield Allele(allele_loci=allele_loci, allele_variant=alelle_id, partial_match_profile=None)
+            elif "partial_matches" in sequence_response:
+                if exact:
+                    raise NoBIGSdbExactMatchesException(self._database_name, self._schema_id)
+                partial_matches: dict[str, dict[str, Union[str, float, int]]] = sequence_response["partial_matches"] 
+                for allele_loci, partial_match in partial_matches.items():
+                    if len(partial_match) <= 0:
+                        continue
+                    partial_match_profile = PartialAllelicMatchProfile(
+                        percent_identity=float(partial_match["identity"]),
+                        mismatches=int(partial_match["mismatches"]),
+                        bitscore=float(partial_match["bitscore"]),
+                        gaps=int(partial_match["gaps"])
+                    )
+                    yield Allele(
+                        allele_loci=allele_loci,
+                        allele_variant=str(partial_match["allele"]),
+                        partial_match_profile=partial_match_profile
+                    )
+            else:
+                raise NoBIGSdbMatchesException(self._database_name, self._schema_id)
 
 
 
