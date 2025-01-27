@@ -15,7 +15,8 @@ requires-python = ">=3.12"
 description = "A library to rapidly fetch fetch MLST profiles given sequences for various diseases."
 
 [project.urls]
-Repository = "https://github.com/RealYHD/autoBIGS.engine"
+Homepage = "https://github.com/RealYHD/autoBIGS.engine"
+Source = "https://github.com/RealYHD/autoBIGS.engine"
 Issues = "https://github.com/RealYHD/autoBIGS.engine/issues"
 
 [tool.setuptools_scm]

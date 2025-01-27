@@ -6,7 +6,7 @@ import pytest
 from autobigs.engine.data.structures.genomics import NamedString
 from autobigs.engine.data.structures.mlst import Allele, MLSTProfile
 from autobigs.engine.exceptions.database import NoBIGSdbExactMatchesException, NoBIGSdbMatchesException
-from autobigs.engine.data.remote.databases.bigsdb import BIGSdbIndex, BIGSdbMLSTProfiler
+from autobigs.engine.data.remote.databases.bigsdb import BIGSdbIndex, OnlineBIGSdbMLSTProfiler
 
 def gene_scrambler(gene: str, mutation_site_count: Union[int, float], alphabet: Sequence[str] = ["A", "T", "C", "G"]):
     rand = random.Random(gene)
@@ -20,19 +20,19 @@ def gene_scrambler(gene: str, mutation_site_count: Union[int, float], alphabet: 
 
 async def test_institutpasteur_profiling_results_in_exact_matches_when_exact():
     sequence = str(SeqIO.read("tests/resources/tohama_I_bpertussis.fasta", "fasta").seq)
-    async with BIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
+    async with OnlineBIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
         targets_left = {"adk", "fumC", "glyA", "tyrB", "icd", "pepA", "pgm"}
-        async for exact_match in dummy_profiler.fetch_mlst_allele_variants(sequence_string=sequence, exact=True):
+        async for exact_match in dummy_profiler.fetch_mlst_allele_variants(sequence_strings=[sequence]):
             assert isinstance(exact_match, Allele)
             assert exact_match.allele_variant == '1' # All of Tohama I has allele id I
-            targets_left.remove(exact_match.allele_loci)
+            targets_left.remove(exact_match.allele_locus)
 
         assert len(targets_left) == 0
 
 async def test_institutpasteur_sequence_profiling_non_exact_returns_non_exact():
     sequences = list(SeqIO.parse("tests/resources/tohama_I_bpertussis_coding.fasta", "fasta"))
     mlst_targets = {"adk", "fumc", "glya", "tyrb", "icd", "pepa", "pgm"}
-    async with BIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as profiler:
+    async with OnlineBIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as profiler:
         for sequence in sequences:
             match = re.fullmatch(r".*\[gene=([\w\d]+)\].*", sequence.description)
             if match is None:
@@ -41,7 +41,7 @@ async def test_institutpasteur_sequence_profiling_non_exact_returns_non_exact():
             if gene.lower() not in mlst_targets:
                 continue
             scrambled = gene_scrambler(str(sequence.seq), 0.125)
-            async for partial_match in profiler.fetch_mlst_allele_variants(scrambled, False):
+            async for partial_match in profiler.fetch_mlst_allele_variants(scrambled):
                 assert partial_match.partial_match_profile is not None
                 mlst_targets.remove(gene.lower())
 
@@ -60,7 +60,7 @@ async def test_institutpasteur_profiling_results_in_correct_mlst_st():
         ]
         for dummy_allele in dummy_alleles:
             yield dummy_allele
-    async with BIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
+    async with OnlineBIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
         mlst_st_data = await dummy_profiler.fetch_mlst_st(dummy_allele_generator())
         assert mlst_st_data is not None
         assert isinstance(mlst_st_data, MLSTProfile)
@@ -77,7 +77,7 @@ async def test_institutpasteur_profiling_non_exact_results_in_list_of_mlsts():
     Allele("pepA", "1", None),
     Allele("pgm", "5", None),
     ]
-    async with BIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
+    async with OnlineBIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
         mlst_profile = await dummy_profiler.fetch_mlst_st(dummy_alleles)
         assert mlst_profile.clonal_complex == "unknown"
         assert mlst_profile.sequence_type == "unknown"
@@ -85,7 +85,7 @@ async def test_institutpasteur_profiling_non_exact_results_in_list_of_mlsts():
 
 async def test_institutpasteur_sequence_profiling_is_correct():
     sequence = str(SeqIO.read("tests/resources/tohama_I_bpertussis.fasta", "fasta").seq)
-    async with BIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
+    async with OnlineBIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
         profile = await dummy_profiler.profile_string(sequence)
         assert profile is not None
         assert isinstance(profile, MLSTProfile)
@@ -104,8 +104,8 @@ async def test_pubmlst_profiling_results_in_exact_matches_when_exact():
         Allele("recA", "5", None),
     }
     sequence = str(SeqIO.read("tests/resources/FDAARGOS_1560.fasta", "fasta").seq)
-    async with BIGSdbMLSTProfiler(database_api="https://rest.pubmlst.org/", database_name="pubmlst_hinfluenzae_seqdef", schema_id=1) as dummy_profiler:
-        exact_matches = dummy_profiler.fetch_mlst_allele_variants(sequence_string=sequence, exact=True)
+    async with OnlineBIGSdbMLSTProfiler(database_api="https://rest.pubmlst.org/", database_name="pubmlst_hinfluenzae_seqdef", schema_id=1) as dummy_profiler:
+        exact_matches = dummy_profiler.fetch_mlst_allele_variants(sequence_strings=sequence)
         async for exact_match in exact_matches:
             assert isinstance(exact_match, Allele)
             dummy_alleles.remove(exact_match)
@@ -125,7 +125,7 @@ async def test_pubmlst_profiling_results_in_correct_st():
             ]
         for dummy_allele in dummy_alleles:
             yield dummy_allele
-    async with BIGSdbMLSTProfiler(database_api="https://rest.pubmlst.org/", database_name="pubmlst_hinfluenzae_seqdef", schema_id=1) as dummy_profiler:
+    async with OnlineBIGSdbMLSTProfiler(database_api="https://rest.pubmlst.org/", database_name="pubmlst_hinfluenzae_seqdef", schema_id=1) as dummy_profiler:
         mlst_st_data = await dummy_profiler.fetch_mlst_st(generate_dummy_targets())
         assert mlst_st_data is not None
         assert isinstance(mlst_st_data, MLSTProfile)
@@ -134,7 +134,7 @@ async def test_pubmlst_profiling_results_in_correct_st():
 
 async def test_pubmlst_sequence_profiling_is_correct():
     sequence = str(SeqIO.read("tests/resources/FDAARGOS_1560.fasta", "fasta").seq)
-    async with BIGSdbMLSTProfiler(database_api="https://rest.pubmlst.org/", database_name="pubmlst_hinfluenzae_seqdef", schema_id=1) as dummy_profiler:
+    async with OnlineBIGSdbMLSTProfiler(database_api="https://rest.pubmlst.org/", database_name="pubmlst_hinfluenzae_seqdef", schema_id=1) as dummy_profiler:
         profile = await dummy_profiler.profile_string(sequence)
         assert profile is not None
         assert isinstance(profile, MLSTProfile)
@@ -167,9 +167,10 @@ async def test_bigsdb_profile_multiple_strings_same_string_twice():
     dummy_sequences = [NamedString("seq1", sequence), NamedString("seq2", sequence)]
     async def generate_async_iterable_sequences():
         for dummy_sequence in dummy_sequences:
-            yield dummy_sequence
-    async with BIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
-        async for name, profile in dummy_profiler.profile_multiple_strings(generate_async_iterable_sequences()):
+            yield [dummy_sequence]
+    async with OnlineBIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
+        async for named_profile in dummy_profiler.profile_multiple_strings(generate_async_iterable_sequences()):
+            name, profile = named_profile.name, named_profile.mlst_profile
             assert profile is not None
             assert isinstance(profile, MLSTProfile)
             assert profile.clonal_complex == "ST-2 complex"
@@ -180,9 +181,11 @@ async def test_bigsdb_profile_multiple_strings_exactmatch_fail_second_no_stop():
     dummy_sequences = [NamedString("seq1", valid_seq), NamedString("should_fail", gene_scrambler(valid_seq, 0.3)), NamedString("seq3", valid_seq)]
     async def generate_async_iterable_sequences():
         for dummy_sequence in dummy_sequences:
-            yield dummy_sequence
-    async with BIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
-        async for name, profile in dummy_profiler.profile_multiple_strings(generate_async_iterable_sequences(), True):
+            yield [dummy_sequence]
+    async with OnlineBIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
+        async for name_profile in dummy_profiler.profile_multiple_strings(generate_async_iterable_sequences(), True):
+            name, profile = name_profile.name, name_profile.mlst_profile
+
             if name == "should_fail":
                 assert profile is None
             else:
@@ -196,9 +199,10 @@ async def test_bigsdb_profile_multiple_strings_nonexact_second_no_stop():
     dummy_sequences = [NamedString("seq1", valid_seq), NamedString("should_fail", gene_scrambler(valid_seq, 0.3)), NamedString("seq3", valid_seq)]
     async def generate_async_iterable_sequences():
         for dummy_sequence in dummy_sequences:
-            yield dummy_sequence
-    async with BIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
-        async for name, profile in dummy_profiler.profile_multiple_strings(generate_async_iterable_sequences(), False):
+            yield [dummy_sequence]
+    async with OnlineBIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
+        async for named_profile in dummy_profiler.profile_multiple_strings(generate_async_iterable_sequences(), False):
+            name, profile = named_profile.name, named_profile.mlst_profile
             if name == "should_fail":
                 assert profile is not None
                 assert profile.clonal_complex == "unknown"
@@ -216,10 +220,11 @@ async def test_bigsdb_profile_multiple_strings_fail_second_stop():
     dummy_sequences = [NamedString("seq1", valid_seq), NamedString("should_fail", invalid_seq), NamedString("seq3", valid_seq)]
     async def generate_async_iterable_sequences():
         for dummy_sequence in dummy_sequences:
-            yield dummy_sequence
-    async with BIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
+            yield [dummy_sequence]
+    async with OnlineBIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
         with pytest.raises(NoBIGSdbMatchesException):
-            async for name, profile in dummy_profiler.profile_multiple_strings(generate_async_iterable_sequences(), exact=True, stop_on_fail=True):
+            async for named_profile in dummy_profiler.profile_multiple_strings(generate_async_iterable_sequences(), stop_on_fail=True):
+                name, profile = named_profile.name, named_profile.mlst_profile
                 if name == "should_fail":
                     pytest.fail("Exception should have been thrown, no exception was thrown.")
                 else:
