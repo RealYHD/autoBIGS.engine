@@ -2,19 +2,13 @@ import csv
 from os import PathLike
 from typing import AsyncIterable, Mapping, Sequence, Union
 
-from autobigs.engine.data.structures.mlst import Allele, MLSTProfile
+from autobigs.engine.structures.mlst import Allele, MLSTProfile
 
 
-def dict_loci_alleles_variants_from_loci(alleles_map: Mapping[str, Sequence[Allele]]):
+def dict_loci_alleles_variants_from_loci(alleles_map: Mapping[str, Allele]):
     result_dict: dict[str, Union[list[str], str]] = {}
     for loci, alleles in alleles_map.items():
-        if len(alleles) == 1:
-            result_dict[loci] = alleles[0].allele_variant
-        else:
-            result_locis = list()
-            for allele in alleles:
-                result_locis.append(allele.allele_variant)
-                result_dict[loci] = result_locis
+        result_dict[loci] = alleles.allele_variant
     return result_dict
 
 
