@@ -26,6 +26,7 @@ class AsyncPairwiseAlignmentEngine(AbstractContextManager):
         self._work_left.add(work)
         
     def _on_complete(self, future: Future):
+        self._work_left.remove(future)
         self._work_complete.put(future)
 
     def work(self, reference, query, **associated_data):
@@ -52,9 +53,7 @@ class AsyncPairwiseAlignmentEngine(AbstractContextManager):
         if self._work_complete.empty() and len(self._work_left):
             return None
         future_now = await asyncio.wrap_future(self._work_complete.get())
-        completed: tuple[PairwiseAlignment, dict[str, Any]] = future_now
-        self._work_left.remove(future_now)
-        return completed
+        return future_now
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.shutdown()
