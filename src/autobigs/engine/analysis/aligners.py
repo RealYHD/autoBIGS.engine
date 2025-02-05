@@ -10,7 +10,7 @@ from autobigs.engine.structures.alignment import AlignmentStats, PairwiseAlignme
 
 class AsyncPairwiseAlignmentEngine(AbstractContextManager):
     def __enter__(self):
-        self._thread_pool = ThreadPoolExecutor(self._max_threads)
+        self._thread_pool = ThreadPoolExecutor(self._max_threads, thread_name_prefix="async-pairwise-alignment")
         return self
 
     def __init__(self, aligner: PairwiseAligner, max_threads: int = 4):
@@ -29,19 +29,20 @@ class AsyncPairwiseAlignmentEngine(AbstractContextManager):
         self._work_complete.put(future)
 
     def work(self, reference, query, **associated_data):
-        alignment_results = sorted(self._aligner.align(reference, query))[0]
-        top_alignment_stats = alignment_results.counts()
+        alignments = self._aligner.align(reference, query)
+        top_alignment = sorted(alignments)[0]
+        top_alignment_stats = top_alignment.counts()
         top_alignment_gaps = top_alignment_stats.gaps
         top_alignment_identities = top_alignment_stats.identities
         top_alignment_mismatches = top_alignment_stats.mismatches
-        top_alignment_score = alignment_results.score # type: ignore
+        top_alignment_score = top_alignment.score # type: ignore
         return PairwiseAlignment(
-            alignment_results.sequences[0],
-            alignment_results.sequences[1],
-            alignment_results.indices[0],
-            alignment_results.indices[1],
+            top_alignment.sequences[0],
+            top_alignment.sequences[1],
+            top_alignment.indices[0],
+            top_alignment.indices[1],
             AlignmentStats(
-                percent_identity=top_alignment_identities/alignment_results.length,
+                percent_identity=top_alignment_identities/top_alignment.length,
                 mismatches=top_alignment_mismatches,
                 gaps=top_alignment_gaps,
                 score=top_alignment_score
@@ -50,8 +51,8 @@ class AsyncPairwiseAlignmentEngine(AbstractContextManager):
     async def next_completed(self) -> Union[tuple[PairwiseAlignment, dict[str, Any]], None]:
         if self._work_complete.empty() and len(self._work_left):
             return None
-        future_now: Future = await asyncio.wrap_future(self._work_complete.get())
-        completed: tuple[PairwiseAlignment, dict[str, Any]] = (future_now).result()
+        future_now = await asyncio.wrap_future(self._work_complete.get())
+        completed: tuple[PairwiseAlignment, dict[str, Any]] = future_now
         self._work_left.remove(future_now)
         return completed
 

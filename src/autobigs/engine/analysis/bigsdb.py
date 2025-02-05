@@ -209,7 +209,7 @@ class LocalBIGSdbMLSTProfiler(BIGSdbMLSTProfiler):
     async def determine_mlst_allele_variants(self, query_sequence_strings: Iterable[str]) -> AsyncGenerator[Allele, Any]:
         aligner = PairwiseAligner("blastn")
         aligner.mode = "local"
-        with AsyncPairwiseAlignmentEngine(aligner) as aligner_engine:
+        with AsyncPairwiseAlignmentEngine(aligner, max_threads=2) as aligner_engine:
             for query_sequence_string in query_sequence_strings:
                 for locus in self._loci:
                     async for allele_variant in read_fasta(self.get_locus_cache_path(locus)):
