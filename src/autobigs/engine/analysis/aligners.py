@@ -31,7 +31,7 @@ class AsyncPairwiseAlignmentEngine(AbstractContextManager):
 
     def work(self, reference, query, **associated_data):
         alignments = self._aligner.align(reference, query)
-        top_alignment = sorted(alignments)[0]
+        top_alignment = alignments[0]
         top_alignment_stats = top_alignment.counts()
         top_alignment_gaps = top_alignment_stats.gaps
         top_alignment_identities = top_alignment_stats.identities
