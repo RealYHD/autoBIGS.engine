@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from numbers import Number
+from typing import Sequence
 
 @dataclass(frozen=True)
 class AlignmentStats:
@@ -12,6 +13,6 @@ class AlignmentStats:
 class PairwiseAlignment:
     reference: str
     query: str
-    reference_indices: list[Number]
-    query_indices: list[Number]
+    reference_indices: Sequence[Number]
+    query_indices: Sequence[Number]
     alignment_stats: AlignmentStats

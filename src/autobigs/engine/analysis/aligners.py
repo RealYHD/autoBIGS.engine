@@ -39,8 +39,8 @@ class AsyncPairwiseAlignmentEngine(AbstractContextManager):
         return PairwiseAlignment(
             top_alignment.sequences[0],
             top_alignment.sequences[1],
-            top_alignment.indices[0],
-            top_alignment.indices[1],
+            tuple(top_alignment.indices[0]),
+            tuple(top_alignment.indices[1]),
             AlignmentStats(
                 percent_identity=top_alignment_identities/top_alignment.length,
                 mismatches=top_alignment_mismatches,
