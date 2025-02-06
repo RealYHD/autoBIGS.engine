@@ -201,10 +201,15 @@ class TestBIGSdbIndex:
                 assert database_name.endswith("seqdef")
             assert databases["pubmlst_bordetella_seqdef"] == "https://bigsdb.pasteur.fr/api"
 
-    async def test_bigsdb_index_instantiates_correct_profiler(self):
+    @pytest.mark.parametrize("local", [
+        (True),
+        (False)
+    ])
+    async def test_bigsdb_index_instantiates_correct_profiler(self, local):
         sequence = str(SeqIO.read("tests/resources/tohama_I_bpertussis.fasta", "fasta").seq)
         async with BIGSdbIndex() as bigsdb_index:
-            async with await bigsdb_index.build_profiler_from_seqdefdb("pubmlst_bordetella_seqdef", 3) as profiler:
+            async with await bigsdb_index.build_profiler_from_seqdefdb(local, "pubmlst_bordetella_seqdef", 3) as profiler:
+                assert isinstance(profiler, BIGSdbMLSTProfiler)
                 profile = await profiler.profile_string(sequence)
                 assert profile.clonal_complex == "ST-2 complex"
                 assert profile.sequence_type == "1"
