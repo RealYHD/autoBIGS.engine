@@ -7,7 +7,7 @@ class AlignmentStats:
     percent_identity: float
     mismatches: int
     gaps: int
-    score: int
+    match_metric: int
 
 @dataclass(frozen=True)
 class PairwiseAlignment:

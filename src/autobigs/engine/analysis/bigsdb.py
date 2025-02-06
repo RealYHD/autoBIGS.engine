@@ -11,7 +11,7 @@ from typing import Any, AsyncGenerator, AsyncIterable, Iterable, Mapping, Sequen
 
 from aiohttp import ClientSession, ClientTimeout
 
-from autobigs.engine.analysis.aligners import AsyncPairwiseAlignmentEngine
+from autobigs.engine.analysis.aligners import AsyncBiopythonPairwiseAlignmentEngine
 from autobigs.engine.reading import read_fasta
 from autobigs.engine.structures.alignment import PairwiseAlignment
 from autobigs.engine.structures.genomics import NamedString
@@ -82,7 +82,7 @@ class RemoteBIGSdbMLSTProfiler(BIGSdbMLSTProfiler):
                             percent_identity=float(partial_match["identity"]),
                             mismatches=int(partial_match["mismatches"]),
                             gaps=int(partial_match["gaps"]),
-                            score=int(partial_match["score"])
+                            match_metric=int(partial_match["bitscore"])
                         )
                         yield Allele(
                             allele_locus=allele_loci,
@@ -209,7 +209,7 @@ class LocalBIGSdbMLSTProfiler(BIGSdbMLSTProfiler):
     async def determine_mlst_allele_variants(self, query_sequence_strings: Iterable[str]) -> AsyncGenerator[Allele, Any]:
         aligner = PairwiseAligner("blastn")
         aligner.mode = "local"
-        with AsyncPairwiseAlignmentEngine(aligner, max_threads=2) as aligner_engine:
+        with AsyncBiopythonPairwiseAlignmentEngine(aligner, max_threads=4) as aligner_engine:
             for query_sequence_string in query_sequence_strings:
                 for locus in self._loci:
                     async for allele_variant in read_fasta(self.get_locus_cache_path(locus)):
@@ -235,7 +235,7 @@ class LocalBIGSdbMLSTProfiler(BIGSdbMLSTProfiler):
                 else:
                     alignment_rankings[result_locus].add((alignment_result, variant_id))
             for final_locus, alignments in alignment_rankings.items():
-                closest_alignment, closest_variant_id = sorted(alignments, key=lambda index: index[0].alignment_stats.score)[0]
+                closest_alignment, closest_variant_id = sorted(alignments, key=lambda index: index[0].alignment_stats.match_metric)[0]
                 yield Allele(final_locus, closest_variant_id, closest_alignment.alignment_stats)
 
     async def determine_mlst_st(self, alleles):

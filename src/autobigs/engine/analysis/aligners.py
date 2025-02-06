@@ -8,7 +8,7 @@ from queue import Queue
 from autobigs.engine.structures.alignment import AlignmentStats, PairwiseAlignment
 
 
-class AsyncPairwiseAlignmentEngine(AbstractContextManager):
+class AsyncBiopythonPairwiseAlignmentEngine(AbstractContextManager):
     def __enter__(self):
         self._thread_pool = ThreadPoolExecutor(self._max_threads, thread_name_prefix="async-pairwise-alignment")
         return self
@@ -46,7 +46,7 @@ class AsyncPairwiseAlignmentEngine(AbstractContextManager):
                 percent_identity=top_alignment_identities/top_alignment.length,
                 mismatches=top_alignment_mismatches,
                 gaps=top_alignment_gaps,
-                score=top_alignment_score
+                match_metric=top_alignment_score
             )), associated_data
 
     async def next_completed(self) -> Union[tuple[PairwiseAlignment, dict[str, Any]], None]:
