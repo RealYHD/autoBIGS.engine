@@ -1,16 +1,19 @@
+from collections import defaultdict
 import csv
 from os import PathLike
-from typing import AsyncIterable, Mapping, Sequence, Union
+from typing import AsyncIterable, Collection, Mapping, Sequence, Union
 
 from autobigs.engine.structures.mlst import Allele, MLSTProfile
 
 
-def dict_loci_alleles_variants_from_loci(alleles_map: Mapping[str, Allele]):
-    result_dict: dict[str, Union[list[str], str]] = {}
-    for loci, alleles in alleles_map.items():
-        result_dict[loci] = alleles.allele_variant
-    return result_dict
-
+def alleles_to_map(alleles: Collection[Allele]) -> Mapping[str, Union[list[str], str]]:
+    result = defaultdict(list)
+    for allele in alleles:
+        result[allele.allele_locus].append(allele.allele_variant)
+    for locus in result.keys():
+        if len(result[locus]) == 1:
+            result[locus] = result[locus][0] # Take the only one
+    return dict(result)
 
 async def write_mlst_profiles_as_csv(mlst_profiles_iterable: AsyncIterable[tuple[str, Union[MLSTProfile, None]]], handle: Union[str, bytes, PathLike[str], PathLike[bytes]]) -> Sequence[str]:
     failed = list()
@@ -21,15 +24,16 @@ async def write_mlst_profiles_as_csv(mlst_profiles_iterable: AsyncIterable[tuple
             if mlst_profile is None:
                 failed.append(name)
                 continue
+            allele_mapping = alleles_to_map(mlst_profile.alleles)
             if writer is None:
-                header = ["id", "st", "clonal-complex", *sorted(mlst_profile.alleles.keys())]
+                header = ["id", "st", "clonal-complex", *sorted(allele_mapping.keys())]
                 writer = csv.DictWriter(filehandle, fieldnames=header)
                 writer.writeheader()
             row_dictionary = {
                 "st": mlst_profile.sequence_type,
                 "clonal-complex": mlst_profile.clonal_complex,
                 "id": name,
-                **mlst_profile.alleles
+                **allele_mapping
             }
             writer.writerow(rowdict=row_dictionary)
     return failed
