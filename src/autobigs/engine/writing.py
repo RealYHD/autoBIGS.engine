@@ -22,14 +22,14 @@ async def write_mlst_profiles_as_csv(mlst_profiles_iterable: AsyncIterable[tuple
                 failed.append(name)
                 continue
             if writer is None:
-                header = ["id", "st", "clonal-complex", *mlst_profile.alleles.keys()]
+                header = ["id", "st", "clonal-complex", *sorted(mlst_profile.alleles.keys())]
                 writer = csv.DictWriter(filehandle, fieldnames=header)
                 writer.writeheader()
             row_dictionary = {
                 "st": mlst_profile.sequence_type,
                 "clonal-complex": mlst_profile.clonal_complex,
                 "id": name,
-                **dict_loci_alleles_variants_from_loci(mlst_profile.alleles)
+                **mlst_profile.alleles
             }
             writer.writerow(rowdict=row_dictionary)
     return failed
