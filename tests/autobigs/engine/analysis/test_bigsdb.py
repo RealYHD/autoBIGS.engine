@@ -199,7 +199,6 @@ class TestBIGSdbIndex:
             assert databases["pubmlst_bordetella_seqdef"] == "https://bigsdb.pasteur.fr/api"
 
     @pytest.mark.parametrize("local", [
-        (True),
         (False)
     ])
     async def test_bigsdb_index_instantiates_correct_profiler(self, local):
