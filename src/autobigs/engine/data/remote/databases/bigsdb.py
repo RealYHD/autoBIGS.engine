@@ -47,9 +47,12 @@ class OnlineBIGSdbMLSTProfiler(BIGSdbMLSTProfiler):
     async def __aenter__(self):
         return self
 
-    async def fetch_mlst_allele_variants(self, sequence_strings: Iterable[str]) -> AsyncGenerator[Allele, Any]:
+    async def fetch_mlst_allele_variants(self, sequence_strings: Union[Iterable[str], str]) -> AsyncGenerator[Allele, Any]:
         # See https://bigsdb.pasteur.fr/api/db/pubmlst_bordetella_seqdef/schemes
         uri_path = "sequence"
+
+        if isinstance(sequence_strings, str):
+            sequence_strings = [sequence_strings]
 
         for sequence_string in sequence_strings:
             async with self._http_client.post(uri_path, json={
