@@ -6,13 +6,15 @@ from typing import AsyncIterable, Collection, Mapping, Sequence, Union
 from autobigs.engine.structures.mlst import Allele, MLSTProfile
 
 
-def alleles_to_text_map(alleles: Collection[Allele]) -> Mapping[str, Union[list[str], str]]:
+def alleles_to_text_map(alleles: Collection[Allele]) -> Mapping[str, Union[Sequence[str], str]]:
     result = defaultdict(list)
     for allele in alleles:
         result[allele.allele_locus].append(allele.allele_variant + ("*" if allele.partial_match_profile is not None else ""))
     for locus in result.keys():
         if len(result[locus]) == 1:
             result[locus] = result[locus][0] # Take the only one
+        else:
+            result[locus] = tuple(result[locus]) # type: ignore
     return dict(result)
 
 async def write_mlst_profiles_as_csv(mlst_profiles_iterable: AsyncIterable[tuple[str, Union[MLSTProfile, None]]], handle: Union[str, bytes, PathLike[str], PathLike[bytes]]) -> Sequence[str]:
