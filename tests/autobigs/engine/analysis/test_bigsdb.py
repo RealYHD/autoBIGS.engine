@@ -9,7 +9,7 @@ from autobigs.engine.structures import mlst
 from autobigs.engine.structures.genomics import NamedString
 from autobigs.engine.structures.mlst import Allele, MLSTProfile
 from autobigs.engine.exceptions.database import NoBIGSdbExactMatchesException, NoBIGSdbMatchesException
-from autobigs.engine.analysis.bigsdb import BIGSdbIndex, BIGSdbMLSTProfiler, LocalBIGSdbMLSTProfiler, RemoteBIGSdbMLSTProfiler
+from autobigs.engine.analysis.bigsdb import BIGSdbIndex, BIGSdbMLSTProfiler, RemoteBIGSdbMLSTProfiler
 
 async def generate_async_iterable(normal_iterable):
     for dummy_sequence in normal_iterable:
@@ -76,7 +76,7 @@ hinfluenzae_fdaargos_fragmented_sequence = tuple(SeqIO.parse("tests/resources/to
 
 @pytest.mark.parametrize("local_db,database_api,database_name,schema_id,seq_path,feature_seqs_path,expected_profile,bad_profile", [
     (False, "https://bigsdb.pasteur.fr/api", "pubmlst_bordetella_seqdef", 3, "tohama_I_bpertussis.fasta", "tohama_I_bpertussis_features.fasta", bpertussis_tohamaI_profile, bpertussis_tohamaI_bad_profile),
-    (True, "https://bigsdb.pasteur.fr/api", "pubmlst_bordetella_seqdef", 3, "tohama_I_bpertussis.fasta", "tohama_I_bpertussis_features.fasta", bpertussis_tohamaI_profile, bpertussis_tohamaI_bad_profile),
+    (False, "https://bigsdb.pasteur.fr/api", "pubmlst_hinfluenzae_seqdef", 1, "fdaargos_1560_hinfluenza.fasta", "fdaargos_1560_hinfluenza_features.fasta", hinfluenzae_fdaargos_profile, hinfluenzae_fdaargos_bad_profile),
 ])
 class TestBIGSdbMLSTProfiler:
     async def test_profiling_results_in_exact_matches_when_exact(self, local_db, database_api, database_name, schema_id, seq_path: str, feature_seqs_path: str, expected_profile: MLSTProfile, bad_profile: MLSTProfile):
