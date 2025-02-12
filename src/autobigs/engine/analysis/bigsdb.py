@@ -11,7 +11,6 @@ from typing import Any, AsyncGenerator, AsyncIterable, Iterable, Mapping, Sequen
 
 from aiohttp import ClientSession, ClientTimeout
 
-from autobigs.engine.analysis.aligners import AsyncBiopythonPairwiseAlignmentEngine
 from autobigs.engine.reading import read_fasta
 from autobigs.engine.structures.alignment import PairwiseAlignment
 from autobigs.engine.structures.genomics import NamedString
