@@ -61,12 +61,12 @@ hinfluenzae_fdaargos_profile = MLSTProfile((
     ), "3", "ST-3 complex")
 
 hinfluenzae_fdaargos_bad_profile = MLSTProfile((
-        Allele("adk", "1", None),
-        Allele("atpG", "1", None),
-        Allele("frdB", "1", None),
-        Allele("fucK", "1", None),
-        Allele("mdh", "1", None),
-        Allele("pgi", "1", None),
+        Allele("adk", "3", None),
+        Allele("atpG", "121", None),
+        Allele("frdB", "6", None),
+        Allele("fucK", "5", None),
+        Allele("mdh", "12", None),
+        Allele("pgi", "4", None),
         Allele("recA", "5", None)
     ), "3", "ST-3 complex")
 
