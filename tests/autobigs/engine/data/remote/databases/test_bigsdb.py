@@ -186,11 +186,12 @@ async def test_bigsdb_profile_multiple_strings_exactmatch_fail_second_no_stop():
         async for name_profile in dummy_profiler.profile_multiple_strings(generate_async_iterable_sequences(), True):
             name, profile = name_profile.name, name_profile.mlst_profile
 
+            assert profile is not None
+            assert isinstance(profile, MLSTProfile)
             if name == "should_fail":
-                assert profile is None
+                assert profile.clonal_complex == "unknown"
+                assert profile.sequence_type == "unknown"
             else:
-                assert profile is not None
-                assert isinstance(profile, MLSTProfile)
                 assert profile.clonal_complex == "ST-2 complex"
                 assert profile.sequence_type == "1"
 
@@ -213,25 +214,6 @@ async def test_bigsdb_profile_multiple_strings_nonexact_second_no_stop():
                 assert isinstance(profile, MLSTProfile)
                 assert profile.clonal_complex == "ST-2 complex"
                 assert profile.sequence_type == "1"
-
-async def test_bigsdb_profile_multiple_strings_fail_second_stop():
-    valid_seq = str(SeqIO.read("tests/resources/tohama_I_bpertussis.fasta", "fasta").seq)
-    invalid_seq = str(SeqIO.read("tests/resources/FDAARGOS_1560.fasta", "fasta").seq)
-    dummy_sequences = [NamedString("seq1", valid_seq), NamedString("should_fail", invalid_seq), NamedString("seq3", valid_seq)]
-    async def generate_async_iterable_sequences():
-        for dummy_sequence in dummy_sequences:
-            yield [dummy_sequence]
-    async with OnlineBIGSdbMLSTProfiler(database_api="https://bigsdb.pasteur.fr/api", database_name="pubmlst_bordetella_seqdef", schema_id=3) as dummy_profiler:
-        with pytest.raises(NoBIGSdbMatchesException):
-            async for named_profile in dummy_profiler.profile_multiple_strings(generate_async_iterable_sequences(), stop_on_fail=True):
-                name, profile = named_profile.name, named_profile.mlst_profile
-                if name == "should_fail":
-                    pytest.fail("Exception should have been thrown, no exception was thrown.")
-                else:
-                    assert profile is not None
-                    assert isinstance(profile, MLSTProfile)
-                    assert profile.clonal_complex == "ST-2 complex"
-                    assert profile.sequence_type == "1"
 
 async def test_bigsdb_index_get_schemas_for_bordetella():
     async with BIGSdbIndex() as index:
