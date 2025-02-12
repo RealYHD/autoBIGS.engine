@@ -61,12 +61,12 @@ hinfluenzae_fdaargos_profile = MLSTProfile((
     ), "3", "ST-3 complex")
 
 hinfluenzae_fdaargos_bad_profile = MLSTProfile((
-        Allele("adk", "1", None),
-        Allele("atpG", "1", None),
-        Allele("frdB", "1", None),
-        Allele("fucK", "1", None),
-        Allele("mdh", "1", None),
-        Allele("pgi", "1", None),
+        Allele("adk", "3", None),
+        Allele("atpG", "121", None),
+        Allele("frdB", "6", None),
+        Allele("fucK", "5", None),
+        Allele("mdh", "12", None),
+        Allele("pgi", "4", None),
         Allele("recA", "5", None)
     ), "3", "ST-3 complex")
 
@@ -76,7 +76,7 @@ hinfluenzae_fdaargos_fragmented_sequence = tuple(SeqIO.parse("tests/resources/to
 
 @pytest.mark.parametrize("local_db,database_api,database_name,schema_id,seq_path,feature_seqs_path,expected_profile,bad_profile", [
     (False, "https://bigsdb.pasteur.fr/api", "pubmlst_bordetella_seqdef", 3, "tohama_I_bpertussis.fasta", "tohama_I_bpertussis_features.fasta", bpertussis_tohamaI_profile, bpertussis_tohamaI_bad_profile),
-    (False, "https://bigsdb.pasteur.fr/api", "pubmlst_hinfluenzae_seqdef", 1, "fdaargos_1560_hinfluenza.fasta", "fdaargos_1560_hinfluenza_features.fasta", hinfluenzae_fdaargos_profile, hinfluenzae_fdaargos_bad_profile),
+    (False, "https://rest.pubmlst.org", "pubmlst_hinfluenzae_seqdef", 1, "fdaargos_1560_hinfluenza.fasta", "fdaargos_1560_hinfluenza_features.fasta", hinfluenzae_fdaargos_profile, hinfluenzae_fdaargos_bad_profile),
 ])
 class TestBIGSdbMLSTProfiler:
     async def test_profiling_results_in_exact_matches_when_exact(self, local_db, database_api, database_name, schema_id, seq_path: str, feature_seqs_path: str, expected_profile: MLSTProfile, bad_profile: MLSTProfile):
