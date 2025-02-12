@@ -1,6 +1,6 @@
 # autoBIGS.Engine
 
-A python library implementing common BIGSdb MLST schemes and databases. Implementation follows the RESTful API outlined by the official [BIGSdb documentation](https://bigsdb.readthedocs.io/en/latest/rest.html) up to `V1.50.0`.
+A python library implementing common BIGSdb MLST schemes and databases accesses for the purpose of typing sequences automatically. Implementation follows the RESTful API outlined by the official [BIGSdb documentation](https://bigsdb.readthedocs.io/en/latest/rest.html) up to `V1.50.0`.
 
 ## Features
 

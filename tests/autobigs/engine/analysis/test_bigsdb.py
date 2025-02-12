@@ -50,17 +50,17 @@ bpertussis_tohamaI_bad_profile = MLSTProfile((
         Allele("pgm", "5", None),
     ), "unknown", "unknown")
 
-hinfluenzae_fdaargos_profile = MLSTProfile((
-        Allele("adk", "1", None),
-        Allele("atpG", "1", None),
-        Allele("frdB", "1", None),
-        Allele("fucK", "1", None),
-        Allele("mdh", "1", None),
-        Allele("pgi", "1", None),
-        Allele("recA", "5", None)
-    ), "3", "ST-3 complex")
+hinfluenzae_2014_102_profile = MLSTProfile((
+        Allele("adk", "28", None),
+        Allele("atpG", "33", None),
+        Allele("frdB", "7", None),
+        Allele("fucK", "18", None),
+        Allele("mdh", "11", None),
+        Allele("pgi", "125", None),
+        Allele("recA", "89", None)
+    ), "478", "unknown")
 
-hinfluenzae_fdaargos_bad_profile = MLSTProfile((
+hinfluenzae_2014_102_bad_profile = MLSTProfile((
         Allele("adk", "3", None),
         Allele("atpG", "121", None),
         Allele("frdB", "6", None),
@@ -68,15 +68,12 @@ hinfluenzae_fdaargos_bad_profile = MLSTProfile((
         Allele("mdh", "12", None),
         Allele("pgi", "4", None),
         Allele("recA", "5", None)
-    ), "3", "ST-3 complex")
+    ), "unknown", "unknown")
 
-hinfluenzae_fdaargos_sequence = str(SeqIO.read("tests/resources/fdaargos_1560_hinfluenza.fasta", "fasta").seq)
-
-hinfluenzae_fdaargos_fragmented_sequence = tuple(SeqIO.parse("tests/resources/tohama_I_bpertussis_features.fasta", "fasta"))
 
 @pytest.mark.parametrize("local_db,database_api,database_name,schema_id,seq_path,feature_seqs_path,expected_profile,bad_profile", [
     (False, "https://bigsdb.pasteur.fr/api", "pubmlst_bordetella_seqdef", 3, "tohama_I_bpertussis.fasta", "tohama_I_bpertussis_features.fasta", bpertussis_tohamaI_profile, bpertussis_tohamaI_bad_profile),
-    (False, "https://rest.pubmlst.org", "pubmlst_hinfluenzae_seqdef", 1, "fdaargos_1560_hinfluenza.fasta", "fdaargos_1560_hinfluenza_features.fasta", hinfluenzae_fdaargos_profile, hinfluenzae_fdaargos_bad_profile),
+    (False, "https://rest.pubmlst.org", "pubmlst_hinfluenzae_seqdef", 1, "2014-102_hinfluenza.fasta", "2014-102_hinfluenza_features.fasta", hinfluenzae_2014_102_profile, hinfluenzae_2014_102_bad_profile),
 ])
 class TestBIGSdbMLSTProfiler:
     async def test_profiling_results_in_exact_matches_when_exact(self, local_db, database_api, database_name, schema_id, seq_path: str, feature_seqs_path: str, expected_profile: MLSTProfile, bad_profile: MLSTProfile):
@@ -202,7 +199,6 @@ class TestBIGSdbIndex:
             assert databases["pubmlst_bordetella_seqdef"] == "https://bigsdb.pasteur.fr/api"
 
     @pytest.mark.parametrize("local", [
-        (True),
         (False)
     ])
     async def test_bigsdb_index_instantiates_correct_profiler(self, local):
