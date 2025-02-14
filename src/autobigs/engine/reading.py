@@ -5,12 +5,13 @@ from Bio import SeqIO
 
 from autobigs.engine.structures.genomics import NamedString
 
-async def read_fasta(handle: Union[str, TextIOWrapper]) -> AsyncGenerator[NamedString, Any]:
+async def read_fasta(handle: Union[str, TextIOWrapper]) -> Iterable[NamedString]:
     fasta_sequences = asyncio.to_thread(SeqIO.parse, handle=handle, format="fasta")
+    results = []
     for fasta_sequence in await fasta_sequences:
-        yield NamedString(fasta_sequence.id, str(fasta_sequence.seq))
+        results.append(NamedString(fasta_sequence.id, str(fasta_sequence.seq)))
+    return results
 
-async def read_multiple_fastas(handles: Iterable[Union[str, TextIOWrapper]]) -> AsyncGenerator[NamedString, Any]:
+async def read_multiple_fastas(handles: Iterable[Union[str, TextIOWrapper]]) -> AsyncGenerator[Iterable[NamedString], Any]:
     for handle in handles:
-        async for named_seq in read_fasta(handle):
-            yield named_seq
+        yield await read_fasta(handle)
