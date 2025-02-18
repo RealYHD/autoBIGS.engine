@@ -124,13 +124,17 @@ class RemoteBIGSdbMLSTProfiler(BIGSdbMLSTProfiler):
 
     async def profile_multiple_strings(self, query_named_string_groups: AsyncIterable[Iterable[NamedString]], stop_on_fail: bool = False) -> AsyncGenerator[NamedMLSTProfile, Any]:
         async for named_strings in query_named_string_groups:
+            names: list[str] = list()
+            sequences: list[str] = list()
             for named_string in named_strings:
-                try:
-                    yield NamedMLSTProfile(named_string.name, (await self.profile_string([named_string.sequence])))
-                except NoBIGSdbMatchesException as e:
-                    if stop_on_fail:
-                        raise e
-                    yield NamedMLSTProfile(named_string.name, None)
+                names.append(named_string.name)
+                sequences.append(named_string.sequence)
+            try:
+                yield NamedMLSTProfile("-".join(names), (await self.profile_string(sequences)))
+            except NoBIGSdbMatchesException as e:
+                if stop_on_fail:
+                    raise e
+                yield NamedMLSTProfile("-".join(names), None)
 
     async def close(self):
         await self._http_client.close()
