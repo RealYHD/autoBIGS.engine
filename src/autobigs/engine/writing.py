@@ -3,7 +3,7 @@ import csv
 from os import PathLike
 from typing import AsyncIterable, Collection, Mapping, Sequence, Union
 
-from autobigs.engine.structures.mlst import Allele, MLSTProfile
+from autobigs.engine.structures.mlst import Allele, MLSTProfile, NamedMLSTProfile
 
 
 def alleles_to_text_map(alleles: Collection[Allele]) -> Mapping[str, Union[Sequence[str], str]]:
@@ -17,12 +17,14 @@ def alleles_to_text_map(alleles: Collection[Allele]) -> Mapping[str, Union[Seque
             result[locus] = tuple(result[locus]) # type: ignore
     return dict(result)
 
-async def write_mlst_profiles_as_csv(mlst_profiles_iterable: AsyncIterable[tuple[str, Union[MLSTProfile, None]]], handle: Union[str, bytes, PathLike[str], PathLike[bytes]]) -> Sequence[str]:
+async def write_mlst_profiles_as_csv(mlst_profiles_iterable: AsyncIterable[NamedMLSTProfile], handle: Union[str, bytes, PathLike[str], PathLike[bytes]]) -> Sequence[str]:
     failed = list()
     with open(handle, "w", newline='') as filehandle:
         header = None
         writer: Union[csv.DictWriter, None] = None
-        async for name, mlst_profile in mlst_profiles_iterable:
+        async for named_mlst_profile in mlst_profiles_iterable:
+            name = named_mlst_profile.name
+            mlst_profile = named_mlst_profile.mlst_profile
             if mlst_profile is None:
                 failed.append(name)
                 continue
