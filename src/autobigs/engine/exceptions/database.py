@@ -5,8 +5,12 @@ class BIGSDbDatabaseAPIException(Exception):
 
 
 class NoBIGSdbMatchesException(BIGSDbDatabaseAPIException):
-    def __init__(self, database_name: str, database_schema_id: int, *args):
+    def __init__(self, database_name: str, database_schema_id: int, query_name: Union[None, str], *args):
+        self._query_name = query_name
         super().__init__(f"No matches found with schema with ID {database_schema_id}  in the database \"{database_name}\".", *args)
+    
+    def get_causal_query_name(self) -> Union[str, None]:
+        return self._query_name
 
 class NoBIGSdbExactMatchesException(NoBIGSdbMatchesException):
     def __init__(self, database_name: str, database_schema_id: int, *args):

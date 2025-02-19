@@ -13,5 +13,8 @@ async def read_fasta(handle: Union[str, TextIOWrapper]) -> Iterable[NamedString]
     return results
 
 async def read_multiple_fastas(handles: Iterable[Union[str, TextIOWrapper]]) -> AsyncGenerator[Iterable[NamedString], Any]:
+    tasks = []
     for handle in handles:
-        yield await read_fasta(handle)
+        tasks.append(read_fasta(handle))
+    for task in asyncio.as_completed(tasks):
+        yield await task
